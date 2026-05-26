@@ -1,8 +1,8 @@
 site_name: OMOP Semantics
 site_description: Schema-backed registry for defining and managing semantic OMOP conventions
-site_url: https://AustralianCancerDataNetwork.github.io/OMOP_Semantics
-repo_url: https://github.com/AustralianCancerDataNetwork/OMOP_Semantics
-repo_name: OMOP_Semantics
+site_url: https://AustralianCancerDataNetwork.github.io/omop-semantics
+repo_url: https://github.com/AustralianCancerDataNetwork/omop-semantics
+repo_name: omop-semantics
 
 theme:
   name: material
@@ -50,5 +50,8 @@ plugins:
 nav:
   - Home: index.md
   - Usage: usage.md
+  - Data Model: data-model.md
+  - Schema & Instances: schema-and-instances.md
+  - Internals: internals.md
   - Registry: registry.md
   - Value Sets: valuesets.md

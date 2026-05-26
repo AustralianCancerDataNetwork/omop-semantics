@@ -10,8 +10,16 @@ from omop_semantics.schema.generated_models.omop_semantic_registry import (
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Iterable, TypedDict, Optional, Set
+from pydantic import ValidationError
 from .renderers import render_semantic_object, render_profile_object, Html, tr, h, table, as_list, render_compiled_templates
-from .instance_loader import load_registry_fragment, merge_registry_fragments, load_symbol_module
+from .instance_loader import (
+    load_profiles,
+    load_registry_fragment,
+    merge_instance_files,
+    merge_registry_fragments,
+    load_symbol_module,
+)
+from omop_semantics.utils.paths import INSTANCE_DIR
 
 
 class CompiledTemplate(TypedDict):
@@ -839,9 +847,17 @@ class OmopSemanticEngine:
         """
         fragments: list[RegistryFragment] = []
         profile_objects: dict[str, dict] = {}
+        cdm_profiles = load_profiles(INSTANCE_DIR / "profiles.yaml")
 
         for p in registry_paths:
-            fragments.append(load_registry_fragment(p))
+            try:
+                fragments.append(load_registry_fragment(p))
+            except ValidationError:
+                # Shipped registry instance files often refer to cdm_profile by
+                # name and need interpolation against the profile catalogue
+                # before they conform to RegistryFragment.
+                interpolated = merge_instance_files([p], cdm_profiles)
+                fragments.append(RegistryFragment.model_validate(interpolated))
 
         for p in profile_paths:
             profile_objects.update(load_symbol_module(p))

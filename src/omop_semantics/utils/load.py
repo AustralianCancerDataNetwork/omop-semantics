@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
 import yaml
-from linkml_runtime.loaders import yaml_loader
 from omop_semantics.schema.registry import ConceptRecord, ConceptGroupRecord, ConceptRegistry
 from dataclasses import dataclass
-from typing import Iterable, Mapping, Any, Sequence
+from typing import Sequence
 
 from omop_semantics.schema.schema_model import SchemaInfo, load_schema_info
-from omop_semantics.schema.registry import ConceptRegistry, ConceptRecord, ConceptGroupRecord
 
 from .instance_manager import load_instances_any 
 
@@ -38,7 +35,9 @@ def load(
     """
     Load a ConceptRegistry from LinkML schema YAML + LinkML instance YAML.
 
-    This is the public, stable API.
+    This remains the public compatibility API for older registry-oriented
+    workflows. Newer shape-aware runtime work should generally prefer
+    `omop_semantics.runtime`.
     """
     schema_paths = [Path(p) for p in schema_paths]
     instance_paths = [Path(p) for p in instance_paths]

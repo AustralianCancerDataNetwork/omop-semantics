@@ -42,7 +42,10 @@ docs = [
 requires = ["uv_build>=0.9.2,<0.10.0"]
 build-backend = "uv_build"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [project.urls]
-Homepage = "https://australiancancerdatanetwork.github.io/OMOP_Semantics/"
-Repository = "https://github.com/AustralianCancerDataNetwork/OMOP_Semantics"
-Issues = "https://github.com/AustralianCancerDataNetwork/OMOP_Semantics/issues"
+Homepage = "https://australiancancerdatanetwork.github.io/omop-semantics/"
+Repository = "https://github.com/AustralianCancerDataNetwork/omop-semantics"
+Issues = "https://github.com/AustralianCancerDataNetwork/omop-semantics/issues"

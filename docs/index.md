@@ -1,4 +1,4 @@
-# OMOP_Semantic
+# OMOP Semantics
 
 omop_semantics is a lightweight, schema-backed registry for defining and managing semantic OMOP conventions. 
 
@@ -75,36 +75,31 @@ These define:
 * Individual OMOP concepts with semantic roles and optional parents
 * Named groups of concepts (e.g. “DemographyConcepts”, “TStage”)
 
-3. Builds a runtime ConceptRegistry
+3. Builds runtime surfaces
 
-The registry provides:
+The main runtime surfaces in the current package are:
 
-* Fast lookup by concept_id and role
-* Group membership queries
-* Semantic parent/ancestor traversal
-* Validation against the schema
+* `runtime.default_valuesets`
+  Stable, named concept ids for downstream code.
+* `OmopSemanticEngine`
+  Template/profile runtime for compiled templates and shape-aware logic.
+* `load()` / `ConceptRegistry`
+  Older compatibility path for registry-style workflows.
 
-4. Supports round-tripping
+4. Supports documentation and downstream integration
 
-The registry can be emitted back to LinkML-compatible YAML, enabling:
+The same authoring assets can support:
 
-* Curation workflows
-* Version control of semantic registries
-* Programmatic transformation and merging
+* stable named ids in runtime code
+* template/profile inspection
+* ETL and validation hooks
+* documentation generation
 
-## Typical Usage
+## Start here
 
-```python
+If you are orienting yourself in the repo, the best next pages are:
 
-from omop_semantics.utils.load import load
-
-registry = load(
-    schema_paths=["omop_semantic_core.yaml", "staging.yaml"],
-    instance_paths=["demographic.yaml", "staging_instances.yaml"],
-)
-
-registry.by_role("demographic")
-registry.ancestors_of(1634213)  # e.g. T0 → staging parents
-registry.group_members("TStage")
-
-```
+* [Usage](usage.md) for the recommended loading paths
+* [Data Model](data-model.md) for profiles, profile groups, and templates
+* [Schema & Instances](schema-and-instances.md) for canonical authoring assets
+* [Internals](internals.md) for package structure and compatibility notes
