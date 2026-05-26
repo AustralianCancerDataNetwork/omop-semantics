@@ -1,6 +1,5 @@
 from pathlib import Path
 from linkml_runtime.loaders import yaml_loader
-from omop_semantics.runtime.utils import load_pydantic_class
 from omop_semantics.schema.generated_models.omop_named_sets import CDMValueSets, OmopEnum, CDMSemanticUnits
 from omop_semantics.runtime.value_sets import compile_valuesets, index_semantic_units, interpolate_valuesets, RuntimeValueSets
 from omop_semantics import SCHEMA_DIR, INSTANCE_DIR

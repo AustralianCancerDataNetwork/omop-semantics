@@ -1,9 +1,10 @@
 from omop_semantics.schema.generated_models.omop_semantic_registry import (
-    OmopConcept, 
-    OmopGroup, 
-    OmopEnum, 
-    RegistryFragment, 
-    OmopSemanticObject, 
+    OmopConcept,
+    OmopGroup,
+    OmopEnum,
+    RegistryFragment,
+    RegistryGroup,
+    OmopSemanticObject,
     OmopTemplate,
     OmopCdmProfile
 )
@@ -197,6 +198,44 @@ class RuntimeTemplate:
         )
 
 
+@dataclass(frozen=True)
+class RegistryRuntimeDiff:
+    """
+    Difference report between two OmopRegistryRuntime instances.
+
+    Fields
+    ------
+    added_templates
+        Template names present in ``other`` but not in ``self``.
+    removed_templates
+        Template names present in ``self`` but not in ``other``.
+    changed_templates
+        Template names present in both registries but with different compiled
+        content (role, cdm_profile, entity_concept_ids, or value_concept_ids).
+    """
+
+    added_templates: tuple[str, ...]
+    removed_templates: tuple[str, ...]
+    changed_templates: tuple[str, ...]
+
+    @property
+    def is_empty(self) -> bool:
+        """True if the two registries are identical in compiled content."""
+        return not (
+            self.added_templates
+            or self.removed_templates
+            or self.changed_templates
+        )
+
+    def __repr__(self) -> str:
+        return (
+            "<RegistryRuntimeDiff "
+            f"+t={len(self.added_templates)} "
+            f"-t={len(self.removed_templates)} "
+            f"~t={len(self.changed_templates)}>"
+        )
+
+
 class OmopRegistryRuntime:
     """
     Runtime interface over a registry of OMOP semantic templates.
@@ -385,6 +424,180 @@ class OmopRegistryRuntime:
             return list(self._compiled_by_name.values())
         return self._compiled_by_role.get(role, [])
     
+    def by_label(self, label: str) -> RuntimeTemplate:
+        """
+        Retrieve a compiled template by case-insensitive name.
+
+        This is the case-insensitive counterpart to ``get()``, useful when
+        template names come from user input or external sources where casing
+        may not be known precisely.
+
+        Parameters
+        ----------
+        label
+            Template name to look up (case-insensitive).
+
+        Returns
+        -------
+        RuntimeTemplate
+            Compiled runtime view of the matching template.
+
+        Raises
+        ------
+        KeyError
+            If no template with the given name exists.
+        """
+        if self._compiled_by_name is None:
+            self.compile_index()
+        key = label.lower()
+        for name, compiled in (self._compiled_by_name or {}).items():
+            if name.lower() == key:
+                return RuntimeTemplate.from_compiled(compiled)
+        raise KeyError(f"No template with name '{label}'")
+
+    def validate(self) -> None:
+        """
+        Validate the registry for internal consistency.
+
+        Checks performed:
+        - no duplicate template names within the registry
+        - every template declares an entity_concept
+
+        Raises
+        ------
+        ValueError
+            If any issues are found, with all problems listed together.
+        """
+        seen_names: set[str] = set()
+        errors: list[str] = []
+
+        for tpl in self.iter_templates():
+            if tpl.name in seen_names:
+                errors.append(f"duplicate template name: '{tpl.name}'")
+            seen_names.add(tpl.name)
+
+            if tpl.entity_concept is None:
+                errors.append(f"template '{tpl.name}' has no entity_concept")
+
+        if errors:
+            raise ValueError(
+                "Registry validation failed:\n"
+                + "\n".join(f"  - {e}" for e in errors)
+            )
+
+    def diff(self, other: "OmopRegistryRuntime") -> RegistryRuntimeDiff:
+        """
+        Compute the difference between this registry and another.
+
+        Compares compiled output — changes in the underlying YAML that do not
+        affect resolved concept IDs, profiles, or roles will not appear here.
+
+        Parameters
+        ----------
+        other
+            Registry to compare against.
+
+        Returns
+        -------
+        RegistryRuntimeDiff
+            Summary of added, removed, and changed templates.
+        """
+        self_names = self.template_names
+        other_names = other.template_names
+
+        added = tuple(sorted(other_names - self_names))
+        removed = tuple(sorted(self_names - other_names))
+
+        changed: list[str] = []
+        for name in sorted(self_names & other_names):
+            a = self.get(name)
+            b = other.get(name)
+            if (
+                a["role"] != b["role"]
+                or a["cdm_profile"] != b["cdm_profile"]
+                or a["entity_concept_ids"] != b["entity_concept_ids"]
+                or a["value_concept_ids"] != b["value_concept_ids"]
+            ):
+                changed.append(name)
+
+        return RegistryRuntimeDiff(
+            added_templates=added,
+            removed_templates=removed,
+            changed_templates=tuple(changed),
+        )
+
+    def merge(
+        self,
+        other: "OmopRegistryRuntime",
+        *,
+        strategy: str = "prefer_self",
+    ) -> "OmopRegistryRuntime":
+        """
+        Merge another registry into this one and return the combined result.
+
+        Template name conflicts are resolved by ``strategy``:
+
+        - ``"prefer_self"`` — keep this registry's template on conflict (default)
+        - ``"prefer_other"`` — use the other registry's template on conflict
+        - ``"error"`` — raise ``ValueError`` on any name conflict
+
+        The returned registry contains all templates from both, flattened into
+        a single organisational group. Group structure from the originals is not
+        preserved in the merged result.
+
+        Parameters
+        ----------
+        other
+            Registry to merge with.
+        strategy
+            Conflict resolution strategy.
+
+        Returns
+        -------
+        OmopRegistryRuntime
+            New registry containing templates from both, with conflicts resolved.
+
+        Raises
+        ------
+        ValueError
+            If ``strategy`` is ``"error"`` and conflicting template names exist.
+        """
+        self_names = self.template_names
+        other_names = other.template_names
+        conflicts = self_names & other_names
+
+        if strategy == "error" and conflicts:
+            raise ValueError(
+                f"Conflicting template names: {sorted(conflicts)}"
+            )
+
+        self_tpls: dict[str, OmopTemplate] = {
+            tpl.name: tpl for tpl in self.iter_templates()
+        }
+        other_tpls: dict[str, OmopTemplate] = {
+            tpl.name: tpl for tpl in other.iter_templates()
+        }
+
+        merged: dict[str, OmopTemplate] = dict(self_tpls)
+        for name, tpl in other_tpls.items():
+            if name not in merged or strategy == "prefer_other":
+                merged[name] = tpl
+
+        new_fragment = RegistryFragment(
+            groups=[
+                RegistryGroup(
+                    name="merged",
+                    role="merged",
+                    registry_members=list(merged.values()),
+                )
+            ]
+        )
+
+        return OmopRegistryRuntime(
+            fragment=new_fragment,
+            template_runtime=self.template_runtime,
+        )
+
     def to_html(self, role: str | None = None) -> Html:
         """
         Render the declarative registry fragment as an HTML table.

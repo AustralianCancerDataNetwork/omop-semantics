@@ -1,41 +1,27 @@
 """
 Package exports for omop-semantics.
 
-This module currently exposes both:
+Public surfaces
+---------------
+omop_semantics.unknowns
+    Canonical fallback/default concepts with reason codes. Stable public API.
+    ``from omop_semantics.unknowns import UNKNOWN``
 
-- the older registry-oriented compatibility API (`load`, `ConceptRegistry`),
-- and package path helpers (`BASE_DIR`, `SCHEMA_DIR`, `INSTANCE_DIR`).
-
-New shape-aware runtime work should generally use `omop_semantics.runtime`,
-while the exports here remain useful for compatibility with existing
-ConceptRegistry-based workflows.
+omop_semantics.runtime
+    Value-set runtime, template-registry runtime, and the OmopSemanticEngine.
+    ``from omop_semantics.runtime.default_valuesets import runtime``
+    ``from omop_semantics.runtime import OmopSemanticEngine``
 """
 
-from .api import (
-    load,
-    LoadOptions,
-    ConceptRegistry,          
-    ConceptRecord,
-    ConceptGroupRecord,
-    RegistryDiff,
-    load_schema_info,
-    RoleDefinition,
-    SchemaInfo,
-    BASE_DIR,
-    SCHEMA_DIR,
-    INSTANCE_DIR,
-)
+from .unknowns import UNKNOWN, UnknownValue, UnknownReason
+from .utils.paths import BASE_DIR, SCHEMA_DIR, INSTANCE_DIR
 
 __all__ = [
-    "load",
-    "LoadOptions",
-    "ConceptRegistry",
-    "ConceptRecord",
-    "ConceptGroupRecord",
-    "RegistryDiff",
-    "load_schema_info",
-    "RoleDefinition",
-    "SchemaInfo",
+    # unknowns — stable public surface
+    "UNKNOWN",
+    "UnknownValue",
+    "UnknownReason",
+    # path helpers
     "BASE_DIR",
     "SCHEMA_DIR",
     "INSTANCE_DIR",
