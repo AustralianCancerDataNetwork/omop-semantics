@@ -47,3 +47,6 @@
 
 # 0.1.15
 - dependabot alerts
+
+# 0.2.0
+- significant cleanup to prepare for consumption in downstream groundworks mapping tasks
