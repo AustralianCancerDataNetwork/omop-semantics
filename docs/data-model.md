@@ -56,17 +56,15 @@ These are broader than individual templates:
 There are multiple meanings of "group" in the codebase:
 
 - `OmopGroup`
-  Semantic grouping or anchor grouping of OMOP concepts.
+  Semantic grouping of OMOP concepts. In the runtime layer, this resolves to
+  the group's anchor `parent_concepts`.
 
 - `RegistryGroup`
   Organizational grouping of templates in a registry fragment.
 
 - Profile group
-  A `RegistryGroup`-shaped symbolic object used to describe valid families of
-  profiles.
-
-This is one of the areas that benefits from cleanup, but the important thing
-for current users is simply to keep the meanings distinct.
+  A named family of admissible CDM profiles such as
+  `ObservationProfiles` or `MeasurementProfiles`.
 
 ## Portable versus DB-expanded semantics
 
@@ -81,5 +79,5 @@ That means the runtime artifacts published here should be thought of as:
 They are **not** the same thing as a DB-expanded descendant set from a live OMOP
 vocabulary graph.
 
-DB-aware systems such as `groundworkers` or `omop-constructs` can derive those
-expanded scopes separately.
+If you need descendant expansion, do that in a downstream DB-aware layer after
+loading these anchor-based semantics.

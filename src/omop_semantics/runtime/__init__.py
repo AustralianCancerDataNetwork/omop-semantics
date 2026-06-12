@@ -1,9 +1,9 @@
 """
-Primary typed runtime exports for templates, profiles, and semantic inspection.
+Public runtime exports for `omop_semantics`.
 
-The `runtime` package is the preferred entrypoint for shape-aware semantics
-work. The most commonly used downstream compatibility surface for stable named
-ids remains `omop_semantics.runtime.default_valuesets`.
+Use this package when you need compiled templates, profile inspection, or
+low-level YAML loading helpers. For the default named-id surface, import
+``runtime`` from ``omop_semantics.runtime.default_valuesets``.
 """
 
 from .instance_loader import load_registry_fragment, merge_registry_fragments, load_symbol_module

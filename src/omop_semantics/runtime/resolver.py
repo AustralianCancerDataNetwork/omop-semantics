@@ -2,6 +2,7 @@ from omop_semantics.schema.generated_models.omop_semantic_registry import (
     OmopConcept,
     OmopGroup,
     OmopEnum,
+    OmopValueSet,
     RegistryFragment,
     RegistryGroup,
     OmopSemanticObject,
@@ -64,12 +65,10 @@ class OmopSemanticResolver:
     - OmopConcept resolves to its single concept_id
     - OmopEnum resolves to the set of concept_ids of its members
     - OmopGroup resolves to the anchor (parent) concept_ids of the group
+    - OmopValueSet resolves to the union of its members' resolved concept_ids
 
-    This library is not database-backed so the resolved group hierarchies
-    need to be resolved in downstream logic.
-
-    TODO: allow this class to extended with full resolution logic without
-    introducing dependencies on database connections or external services. 
+    This library is not database-backed, so descendant expansion and vocabulary
+    graph traversal belong in downstream logic rather than in this resolver.
     """
     def resolve(self, obj: OmopSemanticObject) -> set[int]:
         """
@@ -111,6 +110,13 @@ class OmopSemanticResolver:
                 for parent in (obj.parent_concepts or [])
                 if parent.concept_id is not None
             }
+
+        if isinstance(obj, OmopValueSet):
+            # A value set composes other semantic objects; resolve to the UNION of its members.
+            ids: set[int] = set()
+            for member in (obj.members or []):
+                ids |= self.resolve(member)
+            return ids
 
         raise TypeError(f"Unsupported semantic object: {type(obj)}")
 
@@ -367,17 +373,26 @@ class OmopRegistryRuntime:
         return self._compiled_by_name[name]
     
     def get_runtime(self, name: str) -> RuntimeTemplate:
+        """
+        Retrieve a compiled template and wrap it as a `RuntimeTemplate`.
+
+        This is the most ergonomic lookup when you want attribute access such
+        as `tpl.cdm_profile` or `tpl.entity_concept_ids`.
+        """
         c = self.get(name)
         return RuntimeTemplate.from_compiled(c)
 
     def by_role_runtime(self, role: str) -> list[RuntimeTemplate]:
+        """Return all compiled templates for a role as `RuntimeTemplate` objects."""
         return [RuntimeTemplate.from_compiled(c) for c in self.by_role(role)]
 
     def allows_concept(self, template_name: str, concept_id: int) -> bool:
+        """Return `True` if `concept_id` is allowed in the template's entity slot."""
         tpl = self.get(template_name)
         return concept_id in tpl["entity_concept_ids"]
 
     def allows_value(self, template_name: str, concept_id: int) -> bool:
+        """Return `True` if `concept_id` is allowed in the template's value slot."""
         tpl = self.get(template_name)
         values = tpl["value_concept_ids"]
         return values is not None and concept_id in values
@@ -982,8 +997,8 @@ class OmopSemanticEngine:
       - the registry runtime (indexed, compiled templates),
       - and the optional semantic profile runtime (symbolic/profile view).
 
-    It is intended to be the main object used by ETL pipelines, query builders,
-    and documentation/rendering layers.
+    It is the main high-level entrypoint for shipped registry instance files,
+    ETL routing, and documentation/rendering layers.
     """
 
     def __init__(
@@ -1043,15 +1058,21 @@ class OmopSemanticEngine:
         Construct a semantic engine from YAML registry and profile files.
 
         Multiple registry fragments are merged into a single runtime registry.
-        Profile YAML files are loaded and merged into a single symbolic profile
-        namespace for documentation and inspection.
+        Profile YAML files are loaded into a symbolic profile namespace for
+        documentation and inspection.
+
+        The shipped registry instance files often store `cdm_profile` as a
+        string such as `observation_simple`. This method resolves those names
+        against the built-in `profiles.yaml` catalogue before validating and
+        compiling the registry fragment.
 
         Parameters
         ----------
         registry_paths
             Paths to registry fragment YAML files.
         profile_paths
-            Optional paths to profile/symbol YAML files.
+            Optional paths to symbolic profile/group YAML files that should be
+            exposed through `profile_runtime`.
 
         Returns
         -------

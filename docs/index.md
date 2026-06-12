@@ -77,14 +77,15 @@ These define:
 
 3. Builds runtime surfaces
 
-The main runtime surfaces in the current package are:
+The main runtime surfaces are:
 
 * `runtime.default_valuesets`
   Stable, named concept ids for downstream code.
 * `OmopSemanticEngine`
   Template/profile runtime for compiled templates and shape-aware logic.
-* `load()` / `ConceptRegistry`
-  Older compatibility path for registry-style workflows.
+* `omop_semantics.unknowns`
+  Canonical fallback concepts with reason codes for missing, ambiguous, or
+  defaulted mappings.
 
 4. Supports documentation and downstream integration
 
@@ -102,4 +103,5 @@ If you are orienting yourself in the repo, the best next pages are:
 * [Usage](usage.md) for the recommended loading paths
 * [Data Model](data-model.md) for profiles, profile groups, and templates
 * [Schema & Instances](schema-and-instances.md) for canonical authoring assets
-* [Internals](internals.md) for package structure and compatibility notes
+* [Fallback Concepts](unknowns.md) for the shipped unknown/default concepts
+* [Internals](internals.md) for package structure and load-time behavior

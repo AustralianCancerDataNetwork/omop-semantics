@@ -18,6 +18,9 @@ profiles:
     cdm_table: measurement
     concept_slot: measurement_concept_id
     value_slot: value_as_concept_id
+  - name: measurement_simple
+    cdm_table: measurement
+    concept_slot: measurement_concept_id
   - name: procedure_simple
     cdm_table: procedure_occurrence
     concept_slot: procedure_concept_id
@@ -31,3 +34,6 @@ profiles:
     cdm_table: drug_exposure
     concept_slot: drug_concept_id
     value_slot: dose_value
+  - name: device_simple
+    cdm_table: device_exposure
+    concept_slot: device_concept_id

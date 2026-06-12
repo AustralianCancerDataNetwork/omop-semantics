@@ -18,8 +18,7 @@ Current top-level instances include:
 - `genomic.yaml`
 - `provider_specialty.yaml`
 
-These are the files to treat as the main built-in authoring assets when you are
-working with the current package.
+These are the files to treat as the main built-in authoring assets.
 
 ## Schema organization
 
@@ -66,7 +65,26 @@ observation or measurement profile families.
 Files like `demographic.yaml` and `genomic.yaml` carry concrete semantic
 templates and semantic objects.
 
-## Canonical versus compatibility surfaces
+## Load-time profile interpolation
+
+Registry instance files such as `demographic.yaml` refer to CDM profiles by
+name:
+
+```yaml
+cdm_profile: observation_simple
+```
+
+When you load them through `OmopSemanticEngine.from_yaml_paths()`, those names
+are resolved against the shipped `profiles.yaml` catalogue before the registry
+fragment is validated and compiled.
+
+That means:
+
+- `profiles.yaml` is the authoritative built-in catalogue of CDM row shapes
+- registry instance files can stay compact and readable
+- the compiled runtime always sees a full `OmopCdmProfile` object
+
+## Authoring assets versus runtime surfaces
 
 It is helpful to distinguish:
 
@@ -77,16 +95,3 @@ It is helpful to distinguish:
   Python APIs that consume those assets
 
 The main runtime surfaces are documented in [Usage](usage.md).
-
-## About draft and transitional content
-
-Earlier planning notes referred to draft or transitional content such as
-`todo/` or older experimental schema directories. The important Phase 0
-principle is:
-
-- canonical shipped assets should stay easy to identify
-- draft or archival content should not sit ambiguously beside them
-
-In this checkout, the main shipped instance set is already fairly compact. If
-new provisional content is added later, it should be clearly marked as draft or
-archival rather than mixed into the canonical instance set silently.

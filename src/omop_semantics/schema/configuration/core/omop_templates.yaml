@@ -38,13 +38,14 @@ slots:
   entity_concept:
     description: >
       Concept or group of concepts that may populate the CDM concept slot
-      for this template. If a group or enumeration is provided, any member 
-      of the group or enumeration is valid.
+      for this template. If a group, enumeration, or value set is provided, any
+      member of it is valid.
     range: OmopSemanticObject
     any_of:
       - range: OmopGroup
       - range: OmopEnum
       - range: OmopConcept
+      - range: OmopValueSet
   value_concept:
     description: >
       Group of permissible values for value slots (e.g. value_as_concept_id).
@@ -53,6 +54,7 @@ slots:
       - range: OmopGroup
       - range: OmopEnum
       - range: OmopConcept
+      - range: OmopValueSet
   cdm_profile:
     range: OmopCdmProfile
     required: true

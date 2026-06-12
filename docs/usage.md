@@ -1,14 +1,13 @@
 # Usage
 
-This page describes the recommended loading paths in the current package.
+This page shows the main loading paths that end users can rely on today.
 
 ## 1. Stable named ids for downstream code
 
 Use `runtime.default_valuesets` when you need stable named concept ids in
 downstream logic.
 
-This is an active compatibility surface and should be treated as the default
-choice for code such as:
+This is the default choice for code such as:
 
 ```python
 from omop_semantics.runtime.default_valuesets import runtime
@@ -43,7 +42,6 @@ profile_schema_base = SCHEMA_DIR / "profiles"
 engine = OmopSemanticEngine.from_yaml_paths(
     registry_paths=[
         instance_base / "demographic.yaml",
-        instance_base / "genomic.yaml",
     ],
     profile_paths=[
         instance_base / "profile_groups.yaml",
@@ -53,6 +51,11 @@ engine = OmopSemanticEngine.from_yaml_paths(
     ],
 )
 ```
+
+`from_yaml_paths()` accepts the shipped registry instance files directly. When a
+registry file refers to a CDM profile by name such as `observation_simple`, the
+engine resolves that name against the shipped `profiles.yaml` catalogue before
+building the runtime registry.
 
 Once loaded, the runtime gives you compiled template access:
 
@@ -65,35 +68,53 @@ tpl.entity_concept_ids
 This path is appropriate when you need the semantic object plus shape
 combination that makes up the meaningful template layer.
 
-## 3. Older `ConceptRegistry` workflows
+Useful runtime helpers on `engine.registry_runtime` include:
 
-The package still exports the older `load()` / `ConceptRegistry` path:
+- `get_runtime(name)` for an ergonomic attribute-based template view
+- `by_label(label)` for case-insensitive template lookup
+- `allows_concept(name, concept_id)` to test entity concept membership
+- `allows_value(name, concept_id)` to test value concept membership
+
+## 3. Fallback and default concepts
+
+Use `omop_semantics.unknowns` when you need a standard fallback concept and a
+machine-readable reason for why it was chosen.
 
 ```python
-from omop_semantics import load
+from omop_semantics.unknowns import UNKNOWN
 
-registry = load(
-    schema_paths=[
-        "path/to/schema_a.yaml",
-        "path/to/schema_b.yaml",
-    ],
-    instance_paths=[
-        "path/to/instances_a.yaml",
-        "path/to/instances_b.yaml",
-    ],
+UNKNOWN["generic"].concept_id
+# 4129922
+
+UNKNOWN["condition"].reason
+# "mapping_failed"
+```
+
+This surface is useful when you want:
+
+- a consistent fallback concept catalog across ETL jobs
+- a reason code that distinguishes missing input from mapping failure
+- one import path for default and unknown concepts
+
+## 4. Lower-level loading helpers
+
+If you need custom composition rather than the high-level engine, the
+`omop_semantics.runtime` package also exports lower-level helpers:
+
+```python
+from omop_semantics.runtime import (
+    load_registry_fragment,
+    load_symbol_module,
+    merge_registry_fragments,
 )
 ```
 
-This remains useful when you specifically want the older registry model:
+Use these when you are assembling your own registry fragments or symbolic
+modules explicitly. For shipped instance files, `OmopSemanticEngine.from_yaml_paths()`
+is usually the better starting point because it also handles named
+`cdm_profile` interpolation for you.
 
-- concept lookup by role
-- group membership queries
-- schema-backed validation
-- round-tripping to LinkML-compatible instance dicts
-
-For new shape-aware work, prefer `OmopSemanticEngine`.
-
-## 4. Template-driven ETL routing
+## 5. Template-driven ETL routing
 
 Compiled templates can drive row-shape routing cleanly:
 

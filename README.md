@@ -15,8 +15,7 @@ The goal is to make these conventions **explicit, versioned, and reusable**, ins
 
 ## Current structure
 
-The library currently has two main runtime surfaces and one older compatibility
-surface:
+The library has three user-facing surfaces:
 
 - **Value-set runtime**
   For stable named ids and ergonomic downstream access such as
@@ -26,18 +25,17 @@ surface:
   For working with semantic templates, compiled template views, and CDM row
   shapes via `OmopSemanticEngine`.
 
-- **ConceptRegistry compatibility API**
-  The older `load()` / `ConceptRegistry` path is still exported for workflows
-  that rely on it, but it should be treated as a compatibility surface rather
-  than the only mental model for the package.
+- **Fallback concepts**
+  For canonical "unknown", "not recorded", and default concepts via
+  `from omop_semantics.unknowns import UNKNOWN`.
 
 If you are starting new downstream code today:
 
 1. use `runtime.default_valuesets` when you need stable named concept ids,
 2. use `OmopSemanticEngine` when you need templates, profiles, or profile
    groups,
-3. use `load()` / `ConceptRegistry` when you specifically need the older
-   registry behavior.
+3. use `omop_semantics.unknowns` when you need standard fallback concepts and
+   their reason codes.
 
 ---
 
@@ -89,8 +87,8 @@ Use **omop_semantics** if you:
 ## Docs map
 
 - `docs/usage.md`
-  Recommended loading paths for value sets, templates/profiles, and older
-  registry workflows.
+  Recommended loading paths for value sets, templates/profiles, fallback
+  concepts, and lower-level helpers.
 
 - `docs/data-model.md`
   The conceptual distinction between profiles, profile groups, templates, and
@@ -101,4 +99,7 @@ Use **omop_semantics** if you:
   organized.
 
 - `docs/internals.md`
-  Repo structure, public runtime surfaces, and compatibility notes.
+  Repo structure, public runtime surfaces, and load-time behavior.
+
+- `docs/unknowns.md`
+  Canonical fallback concepts and how to use their reason codes.
