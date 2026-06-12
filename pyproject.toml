@@ -1,7 +1,7 @@
 [project]
 name = "omop-semantics"
-version = "0.2.0"
-description = "Add your description here"
+version = "0.2.1"
+description = "Define, validate, and use schema-backed semantic conventions for OMOP CDM"
 readme = "README.md"
 authors = [
     { name = "gkennos", email = "georgina.kennedy@unsw.edu.au" }

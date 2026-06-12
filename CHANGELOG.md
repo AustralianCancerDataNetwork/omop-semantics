@@ -50,3 +50,6 @@
 
 # 0.2.0
 - significant cleanup to prepare for consumption in downstream groundworks mapping tasks
+
+# 0.2.1
+- clarified the public runtime surfaces and updated package documentation to reflect current end-user behavior
