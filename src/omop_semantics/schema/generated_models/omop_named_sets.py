@@ -29,7 +29,7 @@ from pydantic import (
 )
 
 
-metamodel_version = "None"
+metamodel_version = "1.11.0"
 version = "None"
 
 
@@ -45,19 +45,7 @@ class ConfiguredBaseModel(BaseModel):
         strict = False,
     )
 
-    @model_serializer(mode='wrap', when_used='unless-none')
-    def treat_empty_lists_as_none(
-            self, handler: SerializerFunctionWrapHandler,
-            info: SerializationInfo) -> dict[str, Any]:
-        if info.exclude_none:
-            _instance = self.model_copy()
-            for field, field_info in type(_instance).model_fields.items():
-                if getattr(_instance, field) == [] and not(
-                        field_info.is_required()):
-                    setattr(_instance, field, None)
-        else:
-            _instance = self
-        return handler(_instance, info)
+
 
 
 
@@ -82,7 +70,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'https://example.org/omop_semantics/
      'id': 'https://example.org/omop_semantics/cdm_value_sets',
      'imports': ['omop_base'],
      'name': 'cdm_value_sets',
-     'source_file': '/Users/z3061723/Documents/CODE/OMOP_Semantics/omop-semantics/src/omop_semantics/schema/configuration/core/omop_named_sets.yaml'} )
+     'source_file': 'src/omop_semantics/schema/configuration/core/omop_named_sets.yaml'} )
 
 
 class OmopSemanticObject(ConfiguredBaseModel):
@@ -102,7 +90,7 @@ class OmopGroup(OmopSemanticObject):
          'slot_usage': {'class_uri': {'equals_string': 'OmopGroup',
                                       'name': 'class_uri'}}})
 
-    parent_concepts: Optional[list[Concept]] = Field(default=[], description="""Semantic parent concepts or grouping parents.""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
+    parent_concepts: Optional[list[Concept]] = Field(default=None, description="""Semantic parent concepts or grouping parents.""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
     class_uri: Literal["OmopGroup"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopGroup'} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
     notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
@@ -182,9 +170,9 @@ class CDMSemanticUnits(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/cdm_value_sets'})
 
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
-    named_enumerators: Optional[list[OmopEnum]] = Field(default=[], json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
-    named_concepts: Optional[list[OmopConcept]] = Field(default=[], json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
-    named_groups: Optional[list[OmopGroup]] = Field(default=[], json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
+    named_enumerators: Optional[list[OmopEnum]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
+    named_concepts: Optional[list[OmopConcept]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
+    named_groups: Optional[list[OmopGroup]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
 
 
 # Model rebuild

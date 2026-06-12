@@ -1,16 +1,15 @@
 """
-Package exports for omop-semantics.
+Top-level exports for `omop_semantics`.
 
-Public surfaces
----------------
-omop_semantics.unknowns
-    Canonical fallback/default concepts with reason codes. Stable public API.
-    ``from omop_semantics.unknowns import UNKNOWN``
+Import from the package root for:
 
-omop_semantics.runtime
-    Value-set runtime, template-registry runtime, and the OmopSemanticEngine.
-    ``from omop_semantics.runtime.default_valuesets import runtime``
-    ``from omop_semantics.runtime import OmopSemanticEngine``
+- fallback concepts and reason codes via ``UNKNOWN``
+- path helpers via ``BASE_DIR``, ``SCHEMA_DIR``, and ``INSTANCE_DIR``
+
+For runtime access, use the dedicated subpackages:
+
+- ``from omop_semantics.runtime.default_valuesets import runtime``
+- ``from omop_semantics.runtime import OmopSemanticEngine``
 """
 
 from .unknowns import UNKNOWN, UnknownValue, UnknownReason
@@ -25,4 +24,23 @@ __all__ = [
     "BASE_DIR",
     "SCHEMA_DIR",
     "INSTANCE_DIR",
+    "main",
 ]
+
+
+def main(argv: "list[str] | None" = None) -> int:
+    """Console entry point (``omop-semantics``).
+
+    Subcommands:
+      gen-models   (re)generate the committed pydantic models from the LinkML schema.
+    """
+    import sys
+
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "gen-models":
+        from omop_semantics.schema.codegen import cli as gen_models_cli
+
+        return gen_models_cli(argv[1:])
+
+    print("usage: omop-semantics gen-models [--check] [--out DIR]", file=sys.stderr)
+    return 2

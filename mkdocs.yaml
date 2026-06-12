@@ -52,6 +52,7 @@ nav:
   - Usage: usage.md
   - Data Model: data-model.md
   - Schema & Instances: schema-and-instances.md
+  - Fallback Concepts: unknowns.md
   - Internals: internals.md
   - Registry: registry.md
   - Value Sets: valuesets.md

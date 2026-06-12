@@ -29,7 +29,7 @@ from pydantic import (
 )
 
 
-metamodel_version = "None"
+metamodel_version = "1.11.0"
 version = "None"
 
 
@@ -45,19 +45,7 @@ class ConfiguredBaseModel(BaseModel):
         strict = False,
     )
 
-    @model_serializer(mode='wrap', when_used='unless-none')
-    def treat_empty_lists_as_none(
-            self, handler: SerializerFunctionWrapHandler,
-            info: SerializationInfo) -> dict[str, Any]:
-        if info.exclude_none:
-            _instance = self.model_copy()
-            for field, field_info in type(_instance).model_fields.items():
-                if getattr(_instance, field) == [] and not(
-                        field_info.is_required()):
-                    setattr(_instance, field, None)
-        else:
-            _instance = self
-        return handler(_instance, info)
+
 
 
 
@@ -91,7 +79,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'omop',
                              'prefix_reference': 'https://w3id.org/linkml/'},
                   'omop': {'prefix_prefix': 'omop',
                            'prefix_reference': 'https://athena.ohdsi.org/search-terms/terms/'}},
-     'source_file': '../omop_semantics/schema/configuration/registry/omop_semantic_registry.yaml',
+     'source_file': 'src/omop_semantics/schema/configuration/registry/omop_semantic_registry.yaml',
      'title': 'OMOP Semantic Concept Registry'} )
 
 class CdmTable(str, Enum):
@@ -103,6 +91,7 @@ class CdmTable(str, Enum):
     drug_exposure = "drug_exposure"
     procedure_occurrence = "procedure_occurrence"
     condition_occurrence = "condition_occurrence"
+    device_exposure = "device_exposure"
 
 
 
@@ -127,7 +116,7 @@ class OmopGroup(OmopSemanticObject):
          'slot_usage': {'class_uri': {'equals_string': 'OmopGroup',
                                       'name': 'class_uri'}}})
 
-    parent_concepts: Optional[list[Concept]] = Field(default=[], description="""Semantic parent concepts or grouping parents.""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
+    parent_concepts: Optional[list[Concept]] = Field(default=None, description="""Semantic parent concepts or grouping parents.""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
     class_uri: Literal["OmopGroup"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopGroup'} })
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',
@@ -184,7 +173,7 @@ class OmopValueSet(OmopSemanticObject):
          'slot_usage': {'class_uri': {'equals_string': 'OmopValueSet',
                                       'name': 'class_uri'}}})
 
-    members: Optional[list[OmopSemanticObject]] = Field(default=[], json_schema_extra = { "linkml_meta": {'domain_of': ['OmopValueSet']} })
+    members: Optional[list[OmopSemanticObject]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopValueSet']} })
     class_uri: Literal["OmopValueSet"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopValueSet'} })
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',
@@ -209,7 +198,7 @@ class CDMProfiles(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/cdm_profiles',
          'tree_root': True})
 
-    profiles: Optional[list[OmopCdmProfile]] = Field(default=[], json_schema_extra = { "linkml_meta": {'domain_of': ['CDMProfiles']} })
+    profiles: Optional[list[OmopCdmProfile]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMProfiles']} })
 
 
 class OmopCdmProfile(ConfiguredBaseModel):
@@ -238,15 +227,17 @@ class OmopTemplate(ConfiguredBaseModel):
                        'Registry',
                        'RegistryGroup']} })
     role: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopTemplate', 'RegistryGroup']} })
-    entity_concept: Optional[Union[OmopConcept, OmopEnum, OmopGroup]] = Field(default=None, description="""Concept or group of concepts that may populate the CDM concept slot for this template. If a group or enumeration is provided, any member  of the group or enumeration is valid.
+    entity_concept: Optional[Union[OmopConcept, OmopEnum, OmopGroup, OmopValueSet]] = Field(default=None, description="""Concept or group of concepts that may populate the CDM concept slot for this template. If a group, enumeration, or value set is provided, any member of it is valid.
 """, json_schema_extra = { "linkml_meta": {'any_of': [{'range': 'OmopGroup'},
                     {'range': 'OmopEnum'},
-                    {'range': 'OmopConcept'}],
+                    {'range': 'OmopConcept'},
+                    {'range': 'OmopValueSet'}],
          'domain_of': ['OmopTemplate']} })
-    value_concept: Optional[Union[OmopConcept, OmopEnum, OmopGroup]] = Field(default=None, description="""Group of permissible values for value slots (e.g. value_as_concept_id).
+    value_concept: Optional[Union[OmopConcept, OmopEnum, OmopGroup, OmopValueSet]] = Field(default=None, description="""Group of permissible values for value slots (e.g. value_as_concept_id).
 """, json_schema_extra = { "linkml_meta": {'any_of': [{'range': 'OmopGroup'},
                     {'range': 'OmopEnum'},
-                    {'range': 'OmopConcept'}],
+                    {'range': 'OmopConcept'},
+                    {'range': 'OmopValueSet'}],
          'domain_of': ['OmopTemplate']} })
     cdm_profile: OmopCdmProfile = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopTemplate']} })
     notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'OmopTemplate', 'RegistryGroup']} })
@@ -266,13 +257,13 @@ class Registry(ConfiguredBaseModel):
                        'RegistryGroup']} })
     description: Optional[str] = Field(default=None, description="""Description of the registry or group, intended for documentation purposes.
 """, json_schema_extra = { "linkml_meta": {'domain_of': ['Registry']} })
-    fragments: Optional[list[RegistryFragment]] = Field(default=[], description="""List of registry fragments contained in this registry. This is intended for modularisation of units of semantic definitions, such as all concepts related to staging of neoplastic disease so that then can be reused in different registry profile definitions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Registry']} })
+    fragments: Optional[list[RegistryFragment]] = Field(default=None, description="""List of registry fragments contained in this registry. This is intended for modularisation of units of semantic definitions, such as all concepts related to staging of neoplastic disease so that then can be reused in different registry profile definitions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Registry']} })
 
 
 class RegistryFragment(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantic_registry', 'tree_root': True})
 
-    groups: Optional[list[RegistryGroup]] = Field(default=[], description="""List of registry groups contained in this registry. This is intended for organisation and documentation  purposes, and does not have any semantic meaning beyond indicating that these groups are part of the same  registry.
+    groups: Optional[list[RegistryGroup]] = Field(default=None, description="""List of registry groups contained in this registry. This is intended for organisation and documentation  purposes, and does not have any semantic meaning beyond indicating that these groups are part of the same  registry.
 """, json_schema_extra = { "linkml_meta": {'domain_of': ['RegistryFragment']} })
 
 
@@ -289,7 +280,7 @@ class RegistryGroup(ConfiguredBaseModel):
                        'Registry',
                        'RegistryGroup']} })
     role: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopTemplate', 'RegistryGroup']} })
-    registry_members: Optional[list[OmopTemplate]] = Field(default=[], description="""List of registry symbols that are members of this group. These are not OMOP concept identifiers,  but rather references to other symbols in the registry, such as templates or groups. This is intended  for organisation and documentation purposes, and does not have any semantic meaning beyond indicating  that these symbols are related in some way.
+    registry_members: Optional[list[OmopTemplate]] = Field(default=None, description="""List of registry symbols that are members of this group. These are not OMOP concept identifiers,  but rather references to other symbols in the registry, such as templates or groups. This is intended  for organisation and documentation purposes, and does not have any semantic meaning beyond indicating  that these symbols are related in some way.
 """, json_schema_extra = { "linkml_meta": {'domain_of': ['RegistryGroup']} })
     notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'OmopTemplate', 'RegistryGroup']} })
 

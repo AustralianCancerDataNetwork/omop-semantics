@@ -1,0 +1,12 @@
+# Run `pre-commit install` once per clone. Requires the project env (uv venv) active so the
+# `omop-semantics` console script is on PATH.
+repos:
+  - repo: local
+    hooks:
+      - id: omop-semantics-gen-models-check
+        name: generated pydantic models in sync with LinkML schema
+        entry: omop-semantics gen-models --check
+        language: system
+        pass_filenames: false
+        # Only run when the schema or the generated models change.
+        files: '^src/omop_semantics/schema/(configuration/.*\.yaml|generated_models/.*\.py)$'

@@ -1,5 +1,19 @@
 # Value Sets Runtime
 
+Use the value-set runtime when you want stable named ids with lightweight,
+attribute-style access:
+
+```python
+from omop_semantics.runtime.default_valuesets import runtime
+
+runtime.types.disease_episode_types.episode_of_care
+runtime.types.source_types.ehr_defined
+```
+
+This runtime is read-only. It gives you consistent imports for application
+logic, validation rules, and generated documentation without requiring a live
+vocabulary database.
+
 ## RuntimeValueSets
 
 ::: omop_semantics.runtime.value_sets.RuntimeValueSets
@@ -46,9 +60,10 @@ It demonstrates the full runtime loading pipeline:
 4. Interpolating string references into concrete semantic objects.
 5. Compiling the result into runtime-friendly accessors.
 
-This file is intended primarily as:
-- a working exemplar of the loading pipeline, and  
-- a convenient import point for default registry semantics.
+This module is both:
+
+- the default import point for the shipped value sets
+- a concrete example of how value-set compilation works
 
 ---
 
@@ -94,7 +109,8 @@ runtime = compile_valuesets(value_set_objects)
 
 ### Intended Usage
 
-This module is designed to be imported directly by downstream code (etl, interactive analytics, auto-documentation and/or data validation)
+This module is designed to be imported directly by downstream code in ETL,
+analytics, documentation, or validation.
 
 ```python
 
@@ -113,5 +129,4 @@ It can also be used as a template for loading:
 ### Notes
 
 * This loader pipeline is intentionally explicit and decomposed for clarity.
-* The API surface may be wrapped in higher-level convenience functions in future versions.
-* The current design prioritises transparency and inspectability over terseness.
+* The runtime favors transparency and inspectability over hidden resolution.

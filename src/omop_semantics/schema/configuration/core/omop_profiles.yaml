@@ -40,3 +40,4 @@ enums:
       drug_exposure:
       procedure_occurrence:
       condition_occurrence:
+      device_exposure:

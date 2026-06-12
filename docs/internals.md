@@ -1,6 +1,7 @@
 # Internals
 
-This page is a Phase 0 orientation guide to the current package structure.
+This page explains how the package is organized and where each public surface
+lives.
 
 ## Repo map
 
@@ -13,10 +14,12 @@ At a high level, the repo reads most usefully as:
 2. **Typed runtime layer**
    - `src/omop_semantics/runtime/`
 
-3. **Compatibility layer**
-   - `src/omop_semantics/utils/load.py`
-   - `src/omop_semantics/schema/registry.py`
-   - exports in `omop_semantics.__init__`
+3. **Fallback concepts**
+   - `src/omop_semantics/unknowns.py`
+
+4. **Path helpers and CLI**
+   - `src/omop_semantics/utils/paths.py`
+   - `omop_semantics:main`
 
 ## Current public runtime surfaces
 
@@ -28,15 +31,12 @@ Primary entrypoint:
 from omop_semantics.runtime.default_valuesets import runtime
 ```
 
-This is a real downstream compatibility surface used by code such as:
+Use this when you want stable named ids in downstream code:
 
 ```python
 runtime.types.disease_episode_types.episode_of_care
 runtime.types.source_types.ehr_defined
 ```
-
-Phase 0 assumption:
-this import path and attribute-style access pattern should be preserved.
 
 ### Template/profile runtime
 
@@ -54,34 +54,49 @@ Use this when you need:
 - profile groups
 - shape-aware documentation or validation logic
 
-### Older `ConceptRegistry` API
+### Fallback concepts
 
 Primary entrypoints:
 
 ```python
-from omop_semantics import load
-from omop_semantics import ConceptRegistry
+from omop_semantics.unknowns import UNKNOWN
+from omop_semantics.unknowns import UnknownValue
 ```
 
-This remains exported and usable, but it should be understood as a compatibility
-surface for older registry-oriented workflows rather than the only conceptual
-center of the package.
+Use this when you need canonical unknown/default concepts and a reason code that
+explains why the fallback was chosen.
 
-## Why both runtime paths exist
+## Lower-level helpers
 
-The package currently supports two different styles of downstream usage:
+The `omop_semantics.runtime` package also exports lower-level helpers for custom
+assembly:
 
-1. simple stable named ids
-   Best served by `runtime.default_valuesets`
+```python
+from omop_semantics.runtime import (
+    load_registry_fragment,
+    load_symbol_module,
+    merge_registry_fragments,
+)
+```
 
-2. shape-aware semantic work
-   Best served by `OmopSemanticEngine`
+These are useful when you are composing registry fragments yourself rather than
+starting from `OmopSemanticEngine.from_yaml_paths()`.
 
-The older `ConceptRegistry` path still exists because it remains useful for
-validation and some registry-style workflows, but it is no longer sufficient by
-itself to explain the full shape of the package.
+## What `from_yaml_paths()` does
 
-## Performance and expansion boundary
+`OmopSemanticEngine.from_yaml_paths()` is the most practical entrypoint for the
+shipped YAML assets:
+
+1. It tries to load each registry file directly as a `RegistryFragment`.
+2. If a registry file refers to `cdm_profile` by name, it expands that name
+   from `INSTANCE_DIR / "profiles.yaml"` before validating.
+3. It merges all registry fragments into one runtime registry.
+4. It loads any symbolic profile files you pass in as `profile_runtime`.
+
+This is why examples that use the built-in registry files should usually start
+with `from_yaml_paths()` rather than `load_registry_fragment()`.
+
+## Portability boundary
 
 `omop-semantics` itself should remain portable and fast.
 
@@ -91,4 +106,5 @@ That means:
 - no required descendant expansion at load time
 - runtime artifacts are anchor-based and structural
 
-DB-aware consumers can expand those anchors later if needed.
+If you need descendant expansion or vocabulary-graph traversal, do that in the
+consumer layer after loading the registry.
