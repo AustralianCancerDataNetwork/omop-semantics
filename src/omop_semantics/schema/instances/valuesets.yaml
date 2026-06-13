@@ -1,41 +1,41 @@
 valuesets:
   - name: genomic
-    members:
+    semantic_units:
       - genomic_value_group
       - genomic_mapped_types
   - name: modifiers
-    members:
+    semantic_units:
       - modifier_fields
       - modifier_tables
   - name: types
-    members: 
+    semantic_units: 
       - treatment_episode_types
       - disease_episode_types
       - source_types
   - name: treatment_modifiers
-    members: 
+    semantic_units: 
       - treatment_intent
       - treatment_modality
       - treatment_modifier_values
   - name: condition_modifiers
-    members: 
+    semantic_units: 
       - condition_modifier_values
       - tumor_grade
       - numeric_condition_modifiers
       - condition_status
   - name: nlp
-    members:
+    semantic_units:
       - document_type
       - document_encoding
       - document_language
   - name: cancer_procedures
-    members: 
+    semantic_units: 
       - cancer_consult_types
       - encounter_provider_specialty
       - cancer_procedure_types
       - procedures_by_location
   - name: measurements_numeric
-    members:
+    semantic_units:
       - body_size_units
       - body_size_measurements
       - lab_measurements
@@ -43,19 +43,19 @@ valuesets:
       - proms_numeric
       - performance_status_measurements
   - name: staging
-    members:
+    semantic_units:
       - t_stage_concepts
       - n_stage_concepts
       - m_stage_concepts
       - group_stage_concepts
       - stage_edition
   - name: visits
-    members:
+    semantic_units:
       - visit_modalities
   - name: observations
-    members:
+    semantic_units:
       - demography_concepts
       - sact_concepts
   - name: unknowns
-    members:
+    semantic_units:
       - unknowns

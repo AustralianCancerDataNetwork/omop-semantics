@@ -1,97 +1,154 @@
-# Schema And Instances
+# Schema & Instances
 
-This page explains how the shipped authoring assets are organized.
+## File layout
 
-## Canonical authoring assets
+The package ships two asset directories:
 
-The package currently ships a compact set of canonical instance files under:
+```
+src/omop_semantics/schema/
+├── configuration/          # LinkML schema definitions
+│   ├── core/               # Base primitives, profiles, templates, named-set schema
+│   ├── registry/           # Registry and fragment structures
+│   └── profiles/           # Domain profile modules (staging, modifiers, episodes)
+└── instances/              # YAML instance files (the authoring surface)
+    ├── enumerators.yaml
+    ├── valuesets.yaml
+    ├── profiles.yaml
+    ├── profile_groups.yaml
+    ├── demographic.yaml
+    ├── genomic.yaml
+    └── provider_specialty.yaml
+```
 
-`src/omop_semantics/schema/instances/`
+The `instances/` directory is where the semantic conventions live. The `configuration/` directory contains the LinkML schemas that validate them.
 
-Current top-level instances include:
-
-- `enumerators.yaml`
-- `valuesets.yaml`
-- `profiles.yaml`
-- `profile_groups.yaml`
-- `demographic.yaml`
-- `genomic.yaml`
-- `provider_specialty.yaml`
-
-These are the files to treat as the main built-in authoring assets.
-
-## Schema organization
-
-The schema configuration is split into:
-
-- `configuration/core/`
-  Base semantic primitives, profiles, templates, and named-set definitions.
-
-- `configuration/registry/`
-  Registry- and template-oriented structures.
-
-- `configuration/profiles/`
-  Domain-specific symbolic profile modules such as staging, modifiers, and
-  episodes.
-
-## What each instance file family is for
+## Instance files
 
 ### `enumerators.yaml`
 
-Named enums and groups used to build the stable value-set runtime.
+Defines the named enums and groups used by the value-set runtime. Each entry is an `OmopEnum` or `OmopGroup` with a name and its members. These are loaded into `CDMSemanticUnits` and indexed by name for use by the value-set compiler.
+
+Example:
+```yaml
+named_enumerators:
+  - name: genomic_value_group
+    class_uri: OmopEnum
+    enum_members:
+      - concept_id: 9191
+        label: genomic_positive
+      - concept_id: 9189
+        label: genomic_negative
+```
 
 ### `valuesets.yaml`
 
-High-level namespaces that bundle semantic units together for runtime access
-such as `runtime.types` or `runtime.staging`.
+Groups named enumerators into top-level runtime namespaces. Each value set entry has a name and a `semantic_units` list of enumerator names (string references resolved at load time).
+
+```yaml
+valuesets:
+  - name: genomic
+    semantic_units:
+      - genomic_value_group
+      - genomic_mapped_types
+  - name: staging
+    semantic_units:
+      - t_stage_concepts
+      - n_stage_concepts
+      - group_stage_concepts
+```
+
+These names become the top-level attributes on the `runtime` object: `runtime.genomic`, `runtime.staging`, etc.
 
 ### `profiles.yaml`
 
-Generic OMOP row shapes:
+Defines the CDM row shapes available to templates. Each profile names the target table, the concept slot, and (optionally) the value slot.
 
-- table
-- concept slot
-- optional value slot
+```yaml
+profiles:
+  - name: observation_coded
+    cdm_table: observation
+    concept_slot: observation_concept_id
+    value_slot: value_as_concept_id
+  - name: measurement_numeric
+    cdm_table: measurement
+    concept_slot: measurement_concept_id
+    value_slot: value_as_number
+```
 
-These are structural, not fully semantic, on their own.
+This file is the authoritative catalogue of built-in CDM profiles. Registry instance files refer to profiles by name and the engine resolves them from here at load time.
 
 ### `profile_groups.yaml`
 
-Families of valid profiles. These describe admissible shape sets such as the
-observation or measurement profile families.
-
-### domain-specific instance files
-
-Files like `demographic.yaml` and `genomic.yaml` carry concrete semantic
-templates and semantic objects.
-
-## Load-time profile interpolation
-
-Registry instance files such as `demographic.yaml` refer to CDM profiles by
-name:
+Defines named families of profiles for documentation and routing:
 
 ```yaml
-cdm_profile: observation_simple
+ObservationProfiles:
+  class_uri: RegistryGroup
+  role: observation
+  members:
+    - observation_simple
+    - observation_coded
+    - observation_string
 ```
 
-When you load them through `OmopSemanticEngine.from_yaml_paths()`, those names
-are resolved against the shipped `profiles.yaml` catalogue before the registry
-fragment is validated and compiled.
+These are available via `engine.profile_runtime.list_groups()` when the file is passed to `profile_paths`.
 
-That means:
+### Registry instance files (`demographic.yaml`, etc.)
 
-- `profiles.yaml` is the authoritative built-in catalogue of CDM row shapes
-- registry instance files can stay compact and readable
-- the compiled runtime always sees a full `OmopCdmProfile` object
+These define the actual semantic templates. Each file contains a `groups:` list of `RegistryGroup` entries, each with `registry_members:` — the templates.
 
-## Authoring assets versus runtime surfaces
+Templates in these files refer to CDM profiles by name:
 
-It is helpful to distinguish:
+```yaml
+- name: Country of birth
+  role: demographic
+  entity_concept:
+    class_uri: OmopGroup
+    name: Country of Birth
+    parent_concepts:
+      - concept_id: 4155450
+        label: Country of birth
+  cdm_profile: observation_simple
+```
 
-- **authoring assets**
-  YAML + LinkML schema files in `schema/`
+The string `observation_simple` is resolved against `profiles.yaml` when loading through `OmopSemanticEngine.from_yaml_paths()`.
 
-- **runtime surfaces**
-  Python APIs that consume those assets
+## Profile resolution at load time
 
-The main runtime surfaces are documented in [Usage](usage.md).
+When `OmopSemanticEngine.from_yaml_paths()` loads a registry file, it checks whether any template member uses a string-named `cdm_profile`. If so, it expands those names against the CDM profile catalogue before validating the file as a `RegistryFragment`. Files that already contain fully-expanded profile objects are loaded directly.
+
+The catalogue used defaults to the shipped `profiles.yaml`. To substitute a custom catalogue, pass `profiles_path` to `from_yaml_paths()`.
+
+## Adding your own definitions
+
+To extend the shipped definitions with project-specific conventions, author your own instance files following the same structure and pass them to `from_yaml_paths()`:
+
+```python
+engine = OmopSemanticEngine.from_yaml_paths(
+    registry_paths=[
+        INSTANCE_DIR / "demographic.yaml",   # shipped
+        Path("my_project/oncology.yaml"),     # project-specific
+    ],
+    profile_paths=[
+        INSTANCE_DIR / "profile_groups.yaml",
+    ],
+)
+```
+
+Multiple registry files are merged into a single runtime registry. Template names must be unique across all files.
+
+## Regenerating the Pydantic models
+
+The Pydantic models in `schema/generated_models/` are generated from the LinkML schemas. If you change a schema, regenerate with:
+
+```bash
+omop-semantics gen-models
+```
+
+To check whether the committed models are in sync without writing:
+
+```bash
+omop-semantics gen-models --check
+```
+
+Run these commands with the project's own virtual environment (not a workspace-level environment) to ensure the correct `linkml` version is used.

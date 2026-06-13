@@ -1,132 +1,105 @@
-# Value Sets Runtime
+# Value Sets
 
-Use the value-set runtime when you want stable named ids with lightweight,
-attribute-style access:
+The value-set runtime gives you stable named concept ids with attribute-style access. It is the right choice for application logic, ETL constants, and validation rules where you want a consistent named import rather than a hardcoded integer.
 
 ```python
 from omop_semantics.runtime.default_valuesets import runtime
 
-runtime.types.disease_episode_types.episode_of_care
-runtime.types.source_types.ehr_defined
+runtime.types.disease_episode_types.episode_of_care  # → 32533
+runtime.staging.t_stage_concepts.t3                  # → 1634376
+runtime.genomic.genomic_value_group.genomic_positive  # → 9191
 ```
 
-This runtime is read-only. It gives you consistent imports for application
-logic, validation rules, and generated documentation without requiring a live
-vocabulary database.
+## Object hierarchy
 
-## RuntimeValueSets
+The runtime is a four-level namespace:
 
-::: omop_semantics.runtime.value_sets.RuntimeValueSets
+```
+RuntimeValueSets (runtime)
+  └── RuntimeValueSet (runtime.staging)
+        └── RuntimeSemanticUnit (runtime.staging.t_stage_concepts)
+              ├── RuntimeEnum    — fixed concept list
+              └── RuntimeGroup   — anchor-concept-based group
+```
 
-## RuntimeValueSet
+Access works at any level. `runtime.staging.t3` and `runtime.staging.t_stage_concepts.t3` both return the same concept id — the lookup falls through from the value set to its units and their members.
 
-::: omop_semantics.runtime.value_sets.RuntimeValueSet
+### `RuntimeGroup` singleton shortcut
 
-## RuntimeSemanticUnit
+A group with exactly one parent concept collapses to a plain `int` on attribute access. A group with multiple parents returns the `RuntimeGroup` object. Call `.is_singleton` to test this explicitly, or use `.ids` to always get a `set[int]` regardless.
 
-::: omop_semantics.runtime.value_sets.RuntimeSemanticUnit
+### Available methods
 
-## RuntimeEnum
+All labelled-concept types (`RuntimeEnum`, `RuntimeGroup`) expose:
 
-::: omop_semantics.runtime.value_sets.RuntimeEnum
+| Attribute / Method | Returns |
+|---|---|
+| `.<label>` | `int` concept_id |
+| `.ids` | `set[int]` of all concept ids |
+| `.labels` | sorted `list[str]` of labels |
+| `.mapper()` | `dict[str, int]` label → concept_id |
 
-## RuntimeGroup
+`RuntimeSemanticUnit` additionally exposes `.enums`, `.groups`, and `.concepts` as dictionaries for direct access to the underlying objects.
 
-::: omop_semantics.runtime.value_sets.RuntimeGroup
+## What value sets are available
 
-## compile_valuesets
+The shipped value sets are defined in `instances/valuesets.yaml`. Current top-level names:
 
-::: omop_semantics.runtime.value_sets.compile_valuesets
+| Name | Contents |
+|---|---|
+| `genomic` | Genomic result values and mapped gene types |
+| `modifiers` | Modifier fields and tables |
+| `types` | Episode types and source types |
+| `treatment_modifiers` | Treatment intent, modality, and modifier values |
+| `condition_modifiers` | Condition modifier values, tumour grade, numeric modifiers, condition status |
+| `nlp` | Document type, encoding, and language |
+| `cancer_procedures` | Consult types, provider specialties, procedure types, location |
+| `measurements_numeric` | Body size units and measurements, lab values, smoking, PROMs, performance status |
+| `staging` | T, N, M, and group stage concepts plus stage edition |
+| `visits` | Visit modalities |
+| `observations` | Demography and SACT concepts |
+| `unknowns` | Canonical unknown/fallback concepts |
 
-## interpolate_valuesets
+## Loading your own value sets
 
-::: omop_semantics.runtime.value_sets.interpolate_valuesets
-
-## index_semantic_units
-
-::: omop_semantics.runtime.value_sets.index_semantic_units
-
-## default_valuesets
-
-# Default Value Sets
-
-This module provides a reference implementation for loading and compiling the default OMOP semantic value sets shipped with the library.
-
-It demonstrates the full runtime loading pipeline:
-
-1. Loading semantic unit definitions (enums, groups, concepts) from YAML.
-2. Indexing semantic units by name.
-3. Loading high-level value set definitions.
-4. Interpolating string references into concrete semantic objects.
-5. Compiling the result into runtime-friendly accessors.
-
-This module is both:
-
-- the default import point for the shipped value sets
-- a concrete example of how value-set compilation works
-
----
-
-## Loading Pipeline
-
-The default value sets are constructed using the following steps:
+The default `runtime` object loads the shipped enumerators and value sets at import time. To load a custom set instead, use the compiler directly:
 
 ```python
-from pathlib import Path
 from linkml_runtime.loaders import yaml_loader
-
 from omop_semantics.schema.generated_models.omop_named_sets import CDMSemanticUnits
 from omop_semantics.runtime.value_sets import (
-    compile_valuesets,
     index_semantic_units,
     interpolate_valuesets,
-    RuntimeValueSets,
+    compile_valuesets,
 )
-from omop_semantics import SCHEMA_DIR, INSTANCE_DIR
+from omop_semantics import INSTANCE_DIR
 
-schema_path = SCHEMA_DIR / "core" / "omop_named_sets.yaml"
-enumerator_instances = INSTANCE_DIR / "enumerators.yaml"
-valueset_definitions = INSTANCE_DIR / "valuesets.yaml"
-
-# Load semantic units (enums, groups, concepts)
 enumerators = yaml_loader.load(
-    str(enumerator_instances),
+    str(INSTANCE_DIR / "enumerators.yaml"),
     target_class=CDMSemanticUnits,
 )
-
-# Build name → semantic object index
 idx = index_semantic_units(enumerators)
-
-# Load valueset definitions (string references)
-value_sets = yaml_loader.load_as_dict(str(valueset_definitions))
-
-# Interpolate string references into concrete semantic units
+value_sets = yaml_loader.load_as_dict(str(INSTANCE_DIR / "valuesets.yaml"))
 value_set_objects = interpolate_valuesets(value_sets, idx)
-
-# Compile to runtime objects
 runtime = compile_valuesets(value_set_objects)
 ```
 
-### Intended Usage
+Substitute your own YAML file paths to load project-specific value sets or extend the shipped ones.
 
-This module is designed to be imported directly by downstream code in ETL,
-analytics, documentation, or validation.
+## API reference
 
-```python
+::: omop_semantics.runtime.value_sets.RuntimeValueSets
 
-from omop_semantics.runtime.default_valuesets import runtime
+::: omop_semantics.runtime.value_sets.RuntimeValueSet
 
-concept_id = runtime.genomic.genomic_value_group.genomic_positive
+::: omop_semantics.runtime.value_sets.RuntimeSemanticUnit
 
-```
+::: omop_semantics.runtime.value_sets.RuntimeEnum
 
-It can also be used as a template for loading:
+::: omop_semantics.runtime.value_sets.RuntimeGroup
 
-* site-specific value sets,
-* project-specific semantic registries, or
-* dynamically constructed semantic bundles.
+::: omop_semantics.runtime.value_sets.compile_valuesets
 
-### Notes
+::: omop_semantics.runtime.value_sets.interpolate_valuesets
 
-* This loader pipeline is intentionally explicit and decomposed for clarity.
-* The runtime favors transparency and inspectability over hidden resolution.
+::: omop_semantics.runtime.value_sets.index_semantic_units

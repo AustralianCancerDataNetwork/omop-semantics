@@ -1,48 +1,37 @@
 # OMOP Semantics
 
-omop_semantics is a lightweight, schema-backed registry for defining and managing semantic OMOP conventions. 
+**omop-semantics** is a schema-backed registry for defining and managing semantic conventions on top of the OMOP CDM.
 
-It provides a small, explicit layer for defining, validating, grouping, and traversing OMOP concept identifier and grouping for use in clinical modelling, phenotyping, staging systems, modifiers, and domain-specific semantics.
-
-This creates a validatable, versionable source that can integrate with ETL pipelines, data quality checks, and documentation generation systems, ensuring all of these convention-defining systems are guaranteed to be in sync.
+It gives you a structured, versioned, portable way to describe which OMOP concepts are valid in a given context, how they map to CDM table shapes, and what fallback concepts to use when a mapping cannot be completed. The definitions live in YAML and Python, not in SQL or comments.
 
 ## What problem this solves
 
-A core design goal is to support opinionated, use-case–specific schemas. Rather than assuming a single “correct” interpretation of the OMOP CDM, omop_semantics allows you to define and validate different convention profiles depending on context. This makes it possible to express constraints and semantics that are meaningful in one analytical setting but inappropriate or overly restrictive in another.
+OMOP CDM tables are permissive by design. In practice, most projects apply additional conventions: which condition concepts are valid for tumour phenotyping, how staging modifier concepts should be linked to episodes, what value slot a language-spoken observation should use. These conventions are usually scattered across ETL code, SQL, and documentation.
 
-For example, the OMOP CONDITION_OCCURRENCE table permits any standard concept from the condition domain. However, when working within an oncology-specific modelling context, additional semantic conventions often apply e.g how staging concepts and modifiers should be linked to malignant conditions, or which subsets of condition concepts are valid for tumour phenotyping. These oncology-specific conventions are not intrinsic to OMOP itself and are not generally applicable outside that domain. omop_semantics provides a structured way to encode, validate, and reason over these kinds of domain-specific conventions without baking them into the underlying CDM.
-
-In this sense, it is designed to act as a semantic control layer over OMOP: project-scoped, explicit, and explainable, while remaining portable and independent of the database or vocabulary services.
-
-* Human-authored – concepts and groups are defined into roles and classes within LinkML schemas, which can be navigated to understand the explicit and inspectable semantic relationships
-* Portable – no database or graph store required
-* Versionable – definitions can be traced over time as conventions adapt to the needs of real-world data
-* Flexible integrations - can be used to produce simple sql definitions, human-readable documentation, and OMOP-alchemy compatible vocabulary lookups
+omop-semantics provides a structured layer for encoding those conventions explicitly — as versioned, testable, inspectable definitions — and for consuming them consistently across ETL, analytics, and documentation.
 
 ## Core design
 
-| Layer                          | What it is                                              | Examples                                        |
-| ------------------------------ | ------------------------------------------------------- | ----------------------------------------------- |
-| **A. Semantic primitives**     | What does this concept *mean* in OMOP terms?            | `OmopConcept`, `OmopGroup`, `OmopEnum`          |
-| **B. Structural templates**    | How does this semantic thing get written into CDM rows? | `OmopTemplate`                                  |
-| **C. Registry / organisation** | How do we group and publish reusable definitions?       | `RegistryFragment`, `RegistryGroup`             |
-| **D. CDM profiles**            | What *shape* of CDM row are we writing?                 | `observation_coded`, `measurement_numeric`, etc |
+The library works at four layers:
+
+| Layer | What it is | Examples |
+|---|---|---|
+| **Semantic primitives** | What kind of OMOP thing is this? | `OmopConcept`, `OmopGroup`, `OmopEnum`, `OmopValueSet` |
+| **Structural templates** | How does this get written into a CDM row? | `OmopTemplate` |
+| **Registry organisation** | How are definitions grouped and published? | `RegistryFragment`, `RegistryGroup` |
+| **CDM profiles** | What shape of CDM row is being written? | `observation_coded`, `measurement_numeric` |
 
 ```mermaid
 flowchart TD
-    %% Core composition flow
     RG["RegistryGroup\n(organisational grouping of templates)"]
     TPL["OmopTemplate\n(binds meaning to CDM shape)"]
-
-    SEM["OmopSemanticObject\n(Concept / Group / Enum)"]
-    CDM["OmopCdmProfile\n(table + slots)"]
+    SEM["OmopSemanticObject\n(Concept / Group / Enum / ValueSet)"]
+    CDM["OmopCdmProfile\n(table + concept slot + value slot)"]
 
     RG -->|contains| TPL
-
     TPL -->|entity_concept / value_concept| SEM
     TPL -->|cdm_profile| CDM
 
-    %% Styling
     classDef registry fill:#eef7ff,stroke:#3b82f6,stroke-width:1px;
     classDef template fill:#f0fdf4,stroke:#22c55e,stroke-width:1px;
     classDef semantic fill:#fff7ed,stroke:#f97316,stroke-width:1px;
@@ -52,56 +41,47 @@ flowchart TD
     class TPL template
     class SEM semantic
     class CDM cdm
-
 ```
 
-* OmopConcept   → atomic OMOP concept_id
-* OmopGroup     → semantic sets of concepts
-* OmopTemplate  → how concepts are composed into CDM rows
+### Semantic primitives
 
-At a high level, omop_semantics does four things:
+- **`OmopConcept`** — a single OMOP concept_id with an optional label
+- **`OmopGroup`** — a set of anchor concepts whose OMOP descendants form the intended membership; resolves to anchor `parent_concepts` at runtime
+- **`OmopEnum`** — a fixed, explicitly listed set of concepts that does not change with vocabulary updates
+- **`OmopValueSet`** — a composite of the above, used when a template slot accepts concepts from multiple groups or enums
 
-1. Loads a LinkML schema
+## Three runtime surfaces
 
-This defines:
+At runtime, the library exposes three independent surfaces:
 
-* Valid semantic roles & their definitions (e.g. staging, modifier, demographic)
-* Expected classes (e.g. OmopConcept, ConceptGroup)
+**Value-set runtime** — stable named concept ids for use in application code:
+```python
+from omop_semantics.runtime.default_valuesets import runtime
+runtime.types.disease_episode_types.episode_of_care  # → 32533
+```
 
-2. Loads YAML instance files
+**Template/profile runtime** — compiled templates, CDM profiles, and profile groups:
+```python
+from omop_semantics.runtime import OmopSemanticEngine
+engine = OmopSemanticEngine.from_yaml_paths(registry_paths=[...])
+tpl = engine.registry_runtime.get_runtime("Country of birth")
+```
 
-These define:
+**Fallback concepts** — canonical unknown/default concepts with reason codes:
+```python
+from omop_semantics.unknowns import UNKNOWN
+UNKNOWN["condition"].concept_id   # → 44790729
+UNKNOWN["condition"].reason       # → "mapping_failed"
+```
 
-* Individual OMOP concepts with semantic roles and optional parents
-* Named groups of concepts (e.g. “DemographyConcepts”, “TStage”)
+## Portability
 
-3. Builds runtime surfaces
-
-The main runtime surfaces are:
-
-* `runtime.default_valuesets`
-  Stable, named concept ids for downstream code.
-* `OmopSemanticEngine`
-  Template/profile runtime for compiled templates and shape-aware logic.
-* `omop_semantics.unknowns`
-  Canonical fallback concepts with reason codes for missing, ambiguous, or
-  defaulted mappings.
-
-4. Supports documentation and downstream integration
-
-The same authoring assets can support:
-
-* stable named ids in runtime code
-* template/profile inspection
-* ETL and validation hooks
-* documentation generation
+omop-semantics requires no live vocabulary database and performs no descendant expansion at load time. Runtime artefacts are anchor-based and structural. Descendant expansion belongs in a downstream database-aware layer.
 
 ## Start here
 
-If you are orienting yourself in the repo, the best next pages are:
-
-* [Usage](usage.md) for the recommended loading paths
-* [Data Model](data-model.md) for profiles, profile groups, and templates
-* [Schema & Instances](schema-and-instances.md) for canonical authoring assets
-* [Fallback Concepts](unknowns.md) for the shipped unknown/default concepts
-* [Internals](internals.md) for package structure and load-time behavior
+- [Usage](usage.md) — loading paths and code patterns
+- [Data Model](data-model.md) — profiles, templates, and semantic objects
+- [Schema & Instances](schema-and-instances.md) — authoring assets and file organisation
+- [Fallback Concepts](unknowns.md) — the shipped unknown and default concepts
+- [Internals](internals.md) — package structure and what happens at load time

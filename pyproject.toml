@@ -1,6 +1,6 @@
 [project]
 name = "omop-semantics"
-version = "0.2.1"
+version = "0.2.2"
 description = "Define, validate, and use schema-backed semantic conventions for OMOP CDM"
 readme = "README.md"
 authors = [
@@ -44,6 +44,9 @@ build-backend = "uv_build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.pyright]
+ignore = ["src/omop_semantics/schema/generated_models"]
 
 [project.urls]
 Homepage = "https://australiancancerdatanetwork.github.io/omop-semantics/"
