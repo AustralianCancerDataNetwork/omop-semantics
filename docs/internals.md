@@ -1,110 +1,138 @@
 # Internals
 
-This page explains how the package is organized and where each public surface
-lives.
+## Package layout
 
-## Repo map
+```
+src/omop_semantics/
+├── __init__.py              # Package root: UNKNOWN, path helpers
+├── unknowns.py              # Fallback concept catalog
+├── base.py                  # ConceptEnum base class
+├── utils/
+│   └── paths.py             # BASE_DIR, SCHEMA_DIR, INSTANCE_DIR
+├── runtime/
+│   ├── __init__.py          # Public runtime exports
+│   ├── default_valuesets.py # Eagerly loaded default runtime object
+│   ├── value_sets.py        # RuntimeValueSets hierarchy and compiler
+│   ├── resolver.py          # OmopSemanticEngine, OmopRegistryRuntime, resolver
+│   ├── instance_loader.py   # YAML loading and profile interpolation helpers
+│   ├── renderers.py         # HTML rendering helpers for notebooks
+│   └── unknown_handlers.py  # Re-export shim (import from unknowns instead)
+└── schema/
+    ├── codegen.py           # PydanticGenerator wrapper and CLI
+    ├── dump.py              # YAML dump utility
+    ├── configuration/       # LinkML schemas
+    ├── instances/           # Canonical YAML instance files
+    └── generated_models/    # Committed generated Pydantic models
+```
 
-At a high level, the repo reads most usefully as:
+## Public surfaces
 
-1. **Authoring layer**
-   - `src/omop_semantics/schema/configuration/`
-   - `src/omop_semantics/schema/instances/`
+### Package root
 
-2. **Typed runtime layer**
-   - `src/omop_semantics/runtime/`
+```python
+from omop_semantics import UNKNOWN, UnknownValue, UnknownReason
+from omop_semantics import BASE_DIR, SCHEMA_DIR, INSTANCE_DIR
+```
 
-3. **Fallback concepts**
-   - `src/omop_semantics/unknowns.py`
-
-4. **Path helpers and CLI**
-   - `src/omop_semantics/utils/paths.py`
-   - `omop_semantics:main`
-
-## Current public runtime surfaces
+`BASE_DIR` points to `src/omop_semantics/`. `SCHEMA_DIR` and `INSTANCE_DIR` point to the `configuration/` and `instances/` subdirectories.
 
 ### Value-set runtime
-
-Primary entrypoint:
 
 ```python
 from omop_semantics.runtime.default_valuesets import runtime
 ```
 
-Use this when you want stable named ids in downstream code:
+`default_valuesets` loads and compiles the full value-set registry eagerly at import time. If the YAML files are missing or malformed, the error surfaces at import.
 
-```python
-runtime.types.disease_episode_types.episode_of_care
-runtime.types.source_types.ehr_defined
+The object hierarchy is:
+
+```
+RuntimeValueSets          ← runtime
+  └── RuntimeValueSet     ← runtime.staging
+        └── RuntimeSemanticUnit   ← runtime.staging.t_stage_concepts
+              ├── RuntimeEnum     ← wraps OmopEnum
+              └── RuntimeGroup    ← wraps OmopGroup
 ```
 
-### Template/profile runtime
+Attribute access at any level falls through to the underlying concept ids: `runtime.staging.t3` and `runtime.staging.t_stage_concepts.t3` both work. `__dir__` is implemented on all levels to support tab-completion.
 
-Primary entrypoint:
+### Template/profile runtime
 
 ```python
 from omop_semantics.runtime import OmopSemanticEngine
 ```
 
-Use this when you need:
+`OmopSemanticEngine` wires together:
 
-- templates
-- compiled template views
-- profiles
-- profile groups
-- shape-aware documentation or validation logic
+- `OmopSemanticResolver` — resolves `OmopConcept / OmopGroup / OmopEnum / OmopValueSet` → `set[int]`
+- `OmopTemplateRuntime` — compiles a single `OmopTemplate` into a `CompiledTemplate`
+- `OmopRegistryRuntime` — indexed access to compiled templates with caching
+- `SemanticProfileRuntime` — optional symbolic view of profile objects for inspection and documentation
 
-### Fallback concepts
-
-Primary entrypoints:
-
-```python
-from omop_semantics.unknowns import UNKNOWN
-from omop_semantics.unknowns import UnknownValue
-```
-
-Use this when you need canonical unknown/default concepts and a reason code that
-explains why the fallback was chosen.
-
-## Lower-level helpers
-
-The `omop_semantics.runtime` package also exports lower-level helpers for custom
-assembly:
+### Lower-level helpers
 
 ```python
 from omop_semantics.runtime import (
     load_registry_fragment,
-    load_symbol_module,
     merge_registry_fragments,
+    load_symbol_module,
 )
 ```
 
-These are useful when you are composing registry fragments yourself rather than
-starting from `OmopSemanticEngine.from_yaml_paths()`.
+These are exposed for cases where you want to assemble registry fragments manually. They are also used internally by `from_yaml_paths()`.
 
 ## What `from_yaml_paths()` does
 
-`OmopSemanticEngine.from_yaml_paths()` is the most practical entrypoint for the
-shipped YAML assets:
+1. Loads the CDM profile catalogue from `profiles.yaml` (or the custom `profiles_path` if provided).
+2. For each registry file, checks whether any template uses a string-named `cdm_profile`. If so, expands those names against the catalogue, then validates the result as a `RegistryFragment`. Files with fully-expanded profiles are loaded directly.
+3. Merges all fragments into a single `RegistryFragment`.
+4. Loads any `profile_paths` files as raw symbol dictionaries (no schema validation) and stores them in `SemanticProfileRuntime`.
 
-1. It tries to load each registry file directly as a `RegistryFragment`.
-2. If a registry file refers to `cdm_profile` by name, it expands that name
-   from `INSTANCE_DIR / "profiles.yaml"` before validating.
-3. It merges all registry fragments into one runtime registry.
-4. It loads any symbolic profile files you pass in as `profile_runtime`.
+## Compilation and caching
 
-This is why examples that use the built-in registry files should usually start
-with `from_yaml_paths()` rather than `load_registry_fragment()`.
+`OmopRegistryRuntime` compiles templates lazily on first access. The compiled index (`_compiled_by_name` and `_compiled_by_role`) is computed once and cached. Subsequent calls to `get()`, `by_role()`, `compile_all()`, and similar methods use the cache.
 
-## Portability boundary
+To compile explicitly:
 
-`omop-semantics` itself should remain portable and fast.
+```python
+engine.registry_runtime.compile_index()
+```
 
-That means:
+## Registry diff and merge
 
-- no required live vocabulary database
-- no required descendant expansion at load time
-- runtime artifacts are anchor-based and structural
+Two `OmopRegistryRuntime` instances can be compared:
 
-If you need descendant expansion or vocabulary-graph traversal, do that in the
-consumer layer after loading the registry.
+```python
+diff = engine_a.registry_runtime.diff(engine_b.registry_runtime)
+diff.added_templates    # templates in b but not a
+diff.removed_templates  # templates in a but not b
+diff.changed_templates  # templates in both but with different compiled output
+diff.is_empty           # True if the registries are semantically identical
+```
+
+They can also be merged:
+
+```python
+merged = engine_a.registry_runtime.merge(
+    engine_b.registry_runtime,
+    strategy="prefer_other",  # or "prefer_self" (default) or "error"
+)
+```
+
+The merged result flattens both registries into a single group. Original group structure is not preserved.
+
+## CLI
+
+```bash
+omop-semantics gen-models           # regenerate committed Pydantic models
+omop-semantics gen-models --check   # exit 1 if models are out of sync
+omop-semantics gen-models --out DIR # write to a custom directory
+```
+
+The generator uses `linkml.generators.pydanticgen.PydanticGenerator` with options pinned in `schema/codegen.py`. Run it using the project's own virtual environment to ensure the correct `linkml` version is used.
+
+## Portability
+
+The library requires no live vocabulary database and performs no descendant expansion at load time. The `OmopGroup` semantic is: "the set of descendants of these anchor concepts." The anchor ids are stored and returned; expansion is the consumer's responsibility.
+
+HTML rendering (`_repr_html_`) is implemented on all major runtime types for notebook use. `h()` in `renderers.py` escapes all user-controlled content before inserting it into HTML.

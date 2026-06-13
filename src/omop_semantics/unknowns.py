@@ -20,7 +20,9 @@ This is a stable public surface. External consumers should import from
     'mapping_failed'
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Literal
 
 
@@ -55,7 +57,7 @@ class UnknownValue:
     reason: UnknownReason | None = None
 
 
-UNKNOWN: dict[str, UnknownValue] = {
+UNKNOWN: Mapping[str, UnknownValue] = MappingProxyType({
     "generic":             UnknownValue(4129922,  "Unknown",                                        "missing"),
     "gender":              UnknownValue(4214687,  "Gender Unknown",                                 "missing"),
     "condition":           UnknownValue(44790729, "Unknown problem",                                "mapping_failed"),
@@ -66,6 +68,6 @@ UNKNOWN: dict[str, UnknownValue] = {
     "stage_edition":       UnknownValue(1634449,  "8th",                                            "default_value"),
     "therapeutic_regimen": UnknownValue(4207655,  "prescription of therapeutic regimen",            "mapping_failed"),
     "drug_trial":          UnknownValue(4207655,  "clinical drug trial",                            "ambiguous"),
-}
+})
 
 __all__ = ["UnknownReason", "UnknownValue", "UNKNOWN"]

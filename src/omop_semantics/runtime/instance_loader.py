@@ -80,6 +80,18 @@ def merge_instance_files(
         "groups": merged_groups
     }
 
+def needs_profile_interpolation(path: Path) -> bool:
+    """Return True if any registry member in the file uses a string cdm_profile reference."""
+    data = yaml_loader.load_as_dict(str(path))
+    if not isinstance(data, dict):
+        return False
+    for group in data.get("groups", []) or []:
+        for member in (group.get("registry_members") or []):
+            if isinstance(member.get("cdm_profile"), str):
+                return True
+    return False
+
+
 def merge_registry_fragments(fragments: Sequence[RegistryFragment]) -> RegistryFragment:
     groups: list[RegistryGroup] = []
 

@@ -53,3 +53,9 @@
 
 # 0.2.1
 - clarified the public runtime surfaces and updated package documentation to reflect current end-user behavior
+
+# 0.2.2
+- naming clash for 'members' declared in >1 location
+- light resolver cleanup
+- fix KeyError type
+- docs update

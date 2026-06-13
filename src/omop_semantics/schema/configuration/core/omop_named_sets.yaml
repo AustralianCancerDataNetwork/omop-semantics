@@ -12,7 +12,7 @@ classes:
   CDMValueSet:
     slots:
       - valueset_name
-      - members
+      - semantic_units
   CDMSemanticUnits:
     slots:
       - name
@@ -41,7 +41,7 @@ slots:
     required: true
   name:
     range: string
-  members:
+  semantic_units:
     range: CDMSemanticUnits
     multivalued: true
     required: true

@@ -243,11 +243,11 @@ def render_registry_group(group: RegistryGroup) -> Html:
         ],
     )
 
+    notes = f"<p><em>{h(group.notes)}</em></p>" if group.notes else ""
     return Html(
         f"<h3>{h(group.name)} ({h(group.role)})</h3>"
         f"{html}"
-        f"<p><em>{h(group.notes)}</em></p>" if group.notes else
-        f"<h3>{h(group.name)} ({h(group.role)})</h3>{html}"
+        f"{notes}"
     )
 
 def render_registry_fragment(fragment: RegistryFragment) -> Html:

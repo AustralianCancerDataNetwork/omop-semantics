@@ -12,7 +12,6 @@ from omop_semantics.schema.generated_models.omop_semantic_registry import (
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Iterable, TypedDict, Optional, Set
-from pydantic import ValidationError
 from .renderers import render_semantic_object, render_profile_object, Html, tr, h, table, as_list, render_compiled_templates
 from .instance_loader import (
     load_profiles,
@@ -20,6 +19,7 @@ from .instance_loader import (
     merge_instance_files,
     merge_registry_fragments,
     load_symbol_module,
+    needs_profile_interpolation,
 )
 from omop_semantics.utils.paths import INSTANCE_DIR
 
@@ -368,8 +368,6 @@ class OmopRegistryRuntime:
         """
         if self._compiled_by_name is None:
             self.compile_index()
-        if self._compiled_by_name is None:
-            raise RuntimeError("No compiled templates available")
         return self._compiled_by_name[name]
     
     def get_runtime(self, name: str) -> RuntimeTemplate:
@@ -413,8 +411,6 @@ class OmopRegistryRuntime:
         """
         if self._compiled_by_role is None:
             self.compile_index()
-        if self._compiled_by_role is None:
-            raise RuntimeError("No compiled templates available")
         return self._compiled_by_role.get(role, [])
 
     def compile_all(self, role: str | None = None) -> list[CompiledTemplate]:
@@ -433,9 +429,7 @@ class OmopRegistryRuntime:
         """
         if self._compiled_by_name is None:
             self.compile_index()
-        if self._compiled_by_name is None:
-            raise RuntimeError("Template compilation failed")
-        if role is None or self._compiled_by_role is None:
+        if role is None:
             return list(self._compiled_by_name.values())
         return self._compiled_by_role.get(role, [])
     
@@ -1053,6 +1047,8 @@ class OmopSemanticEngine:
         cls,
         registry_paths: Iterable[Path],
         profile_paths: Iterable[Path] = (),
+        *,
+        profiles_path: Path | None = None,
     ) -> "OmopSemanticEngine":
         """
         Construct a semantic engine from YAML registry and profile files.
@@ -1061,10 +1057,9 @@ class OmopSemanticEngine:
         Profile YAML files are loaded into a symbolic profile namespace for
         documentation and inspection.
 
-        The shipped registry instance files often store `cdm_profile` as a
-        string such as `observation_simple`. This method resolves those names
-        against the built-in `profiles.yaml` catalogue before validating and
-        compiling the registry fragment.
+        Registry files that store ``cdm_profile`` as a string name (e.g.
+        ``observation_simple``) are automatically expanded against the CDM
+        profile catalogue before validation.
 
         Parameters
         ----------
@@ -1072,7 +1067,10 @@ class OmopSemanticEngine:
             Paths to registry fragment YAML files.
         profile_paths
             Optional paths to symbolic profile/group YAML files that should be
-            exposed through `profile_runtime`.
+            exposed through ``profile_runtime``.
+        profiles_path
+            Path to the CDM profile catalogue YAML. Defaults to the shipped
+            ``profiles.yaml`` when not provided.
 
         Returns
         -------
@@ -1081,17 +1079,16 @@ class OmopSemanticEngine:
         """
         fragments: list[RegistryFragment] = []
         profile_objects: dict[str, dict] = {}
-        cdm_profiles = load_profiles(INSTANCE_DIR / "profiles.yaml")
+        cdm_profiles = load_profiles(profiles_path or INSTANCE_DIR / "profiles.yaml")
 
         for p in registry_paths:
-            try:
-                fragments.append(load_registry_fragment(p))
-            except ValidationError:
-                # Shipped registry instance files often refer to cdm_profile by
-                # name and need interpolation against the profile catalogue
-                # before they conform to RegistryFragment.
+            if needs_profile_interpolation(p):
+                # File uses string-named cdm_profile references; expand them
+                # against the catalogue before validating as RegistryFragment.
                 interpolated = merge_instance_files([p], cdm_profiles)
                 fragments.append(RegistryFragment.model_validate(interpolated))
+            else:
+                fragments.append(load_registry_fragment(p))
 
         for p in profile_paths:
             profile_objects.update(load_symbol_module(p))

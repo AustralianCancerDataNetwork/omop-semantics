@@ -135,7 +135,7 @@ class OmopValueSet(OmopSemanticObject):
          'slot_usage': {'class_uri': {'equals_string': 'OmopValueSet',
                                       'name': 'class_uri'}}})
 
-    members: list[CDMSemanticUnits] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopValueSet', 'CDMValueSet']} })
+    members: Optional[list[OmopSemanticObject]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopValueSet']} })
     class_uri: Literal["OmopValueSet"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopValueSet'} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
     notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
@@ -163,7 +163,7 @@ class CDMValueSet(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/cdm_value_sets'})
 
     valueset_name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['CDMValueSet']} })
-    members: list[CDMSemanticUnits] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopValueSet', 'CDMValueSet']} })
+    semantic_units: list[CDMSemanticUnits] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['CDMValueSet']} })
 
 
 class CDMSemanticUnits(ConfiguredBaseModel):

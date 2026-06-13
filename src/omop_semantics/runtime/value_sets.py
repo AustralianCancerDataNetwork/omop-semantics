@@ -1,16 +1,3 @@
-from dataclasses import dataclass
-from omop_semantics.schema.generated_models.omop_named_sets import (
-    OmopConcept, 
-    OmopGroup, 
-    OmopEnum, 
-    OmopSemanticObject, 
-    CDMSemanticUnits,
-    CDMValueSet,
-    CDMValueSets
-)
-from abc import ABC
-from .renderers import tr, table, h, Html
-
 """
 Runtime accessors for OMOP semantic value sets.
 
@@ -40,7 +27,19 @@ as a pure read-only semantic access layer.
 """
 
 from abc import ABC
+from dataclasses import dataclass
 from typing import Mapping
+
+from omop_semantics.schema.generated_models.omop_named_sets import (
+    OmopConcept,
+    OmopGroup,
+    OmopEnum,
+    OmopSemanticObject,
+    CDMSemanticUnits,
+    CDMValueSet,
+    CDMValueSets,
+)
+from .renderers import tr, table, h, Html
 
 class _RuntimeLabelledConcepts(ABC):
     """
@@ -67,7 +66,10 @@ class _RuntimeLabelledConcepts(ABC):
     def __getattr__(self, label: str) -> int:
         if label.startswith("_"):
             raise AttributeError(label)
-        return self._by_label[label]
+        try:
+            return self._by_label[label]
+        except KeyError:
+            raise AttributeError(label) from None
 
     def __repr__(self) -> str:
         labels = ", ".join(self.labels)
@@ -234,10 +236,10 @@ class RuntimeSemanticUnit:
             for value in labelled_item.values():
                 try:
                     return getattr(value, name)
-                except AttributeError:
+                except KeyError:
                     pass
 
-        raise AttributeError(name)
+        raise KeyError(name)
 
     def __repr__(self) -> str:
         parts = []
@@ -404,7 +406,7 @@ def compile_valuesets(defs: CDMValueSets) -> RuntimeValueSets:
     for vs in defs.valuesets:
         members = {
             (unit.name or "[unlabelled]"): RuntimeSemanticUnit(unit)
-            for unit in vs.members
+            for unit in vs.semantic_units
         }
 
         compiled[vs.valueset_name] = RuntimeValueSet(
@@ -485,7 +487,7 @@ def interpolate_valuesets(
     for vs in raw["valuesets"]:
         resolved_members: list[CDMSemanticUnits] = []
 
-        for name in vs["members"]:
+        for name in vs["semantic_units"]:
             if name not in semantic_index:
                 raise KeyError(f"Unknown semantic unit referenced in valuesets.yaml: {name}")
 
@@ -516,7 +518,7 @@ def interpolate_valuesets(
         valuesets.append(
             CDMValueSet(
                 valueset_name=vs["name"],
-                members=resolved_members,
+                semantic_units=resolved_members,
             )
         )
 
