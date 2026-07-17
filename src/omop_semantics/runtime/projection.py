@@ -126,6 +126,20 @@ class ProjectedOutputRow:
 
 
 @dataclass(frozen=True)
+class SuppressedRow:
+    """
+    A row a definition would have produced, dropped deterministically by a
+    `DerivationRule` or row-level suppression policy rather than fabricated
+    with a missing or null slot value.
+    """
+
+    row_id: str
+    reason: str
+    source_field: str
+    source_code: str
+
+
+@dataclass(frozen=True)
 class ProjectedOutputLink:
     """
     Relationship between projected rows.
@@ -150,6 +164,7 @@ class ProjectedOutputBundle:
     links: list[ProjectedOutputLink] = field(default_factory=list)
     constraint_checks: list[dict[str, Any]] = field(default_factory=list)
     unresolved_fields: list[dict[str, Any]] = field(default_factory=list)
+    suppressed_rows: list[SuppressedRow] = field(default_factory=list)
     audit_notes: list[str] = field(default_factory=list)
 
     def row(self, row_id: str) -> ProjectedOutputRow:
@@ -183,5 +198,14 @@ class ProjectedOutputBundle:
             ],
             "constraint_checks": [dict(item) for item in self.constraint_checks],
             "unresolved_fields": [dict(item) for item in self.unresolved_fields],
+            "suppressed_rows": [
+                {
+                    "row_id": row.row_id,
+                    "reason": row.reason,
+                    "source_field": row.source_field,
+                    "source_code": row.source_code,
+                }
+                for row in self.suppressed_rows
+            ],
             "audit_notes": list(self.audit_notes),
         }

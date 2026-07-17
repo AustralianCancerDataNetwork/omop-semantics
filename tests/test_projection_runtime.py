@@ -8,6 +8,7 @@ from omop_semantics.runtime import (
     ProjectedOutputBundle,
     ProjectedOutputLink,
     ProjectedOutputRow,
+    SuppressedRow,
 )
 
 
@@ -124,3 +125,34 @@ def test_projected_output_bundle_serializes_rows_and_links() -> None:
     assert payload["rows"][0]["profile"] == "procedure_with_inline_modifier"
     assert payload["links"][0]["relationship_type"] == "self_modifier"
     assert payload["constraint_checks"][0]["status"] == "not_applicable"
+    assert payload["suppressed_rows"] == []
+
+
+def test_projected_output_bundle_serializes_suppressed_rows() -> None:
+    bundle = ProjectedOutputBundle(
+        definition_name="condition_with_status_from_secondary_field",
+        role="condition_modifier",
+        rows=[],
+        suppressed_rows=[
+            SuppressedRow(
+                row_id="condition",
+                reason="derivation rule for 'condition_status_concept_id' matched a suppress code",
+                source_field="source.role_field",
+                source_code="3",
+            )
+        ],
+    )
+
+    payload = bundle.to_dict()
+
+    assert payload["rows"] == []
+    assert payload["suppressed_rows"] == [
+        {
+            "row_id": "condition",
+            "reason": (
+                "derivation rule for 'condition_status_concept_id' matched a suppress code"
+            ),
+            "source_field": "source.role_field",
+            "source_code": "3",
+        }
+    ]

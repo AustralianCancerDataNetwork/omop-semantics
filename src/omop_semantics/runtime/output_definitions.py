@@ -9,6 +9,7 @@ from .projection import (
     ProjectedOutputRow,
     ProjectionProfileRuntime,
     RuntimeProjectionProfile,
+    SuppressedRow,
 )
 
 
@@ -28,6 +29,39 @@ class ContextFieldRef:
 
 
 BindingValue = Any | ContextFieldRef
+
+
+class _NoDefault:
+    def __repr__(self) -> str:
+        return "NO_DEFAULT"
+
+
+NO_DEFAULT: Any = _NoDefault()
+"""Sentinel distinguishing "no default configured" from a configured default of `None`."""
+
+
+@dataclass(frozen=True)
+class DerivationRule:
+    """
+    Resolve one row's slot value from a source field other than the one that
+    grounded the row's entity concept, via a source-code lookup — with an
+    explicit escape hatch for codes that should suppress the row entirely.
+
+    This is the n:1 fan-in counterpart to `field_bindings` (which only ever
+    read from the same context a row's own entity concept was grounded from).
+    The canonical case is a diagnosis paired with a separately-collected
+    role/status field (e.g. Primary/Contributing/Non-contributing): the role
+    field is never grounded on its own, and its raw code either resolves
+    `condition_status_concept_id` via `code_map` or, for "Non-contributing",
+    drops the record entirely via `suppress_codes`.
+    """
+
+    target_row: str
+    target_slot: str
+    source_field: ContextFieldRef
+    code_map: Mapping[str, Any] = field(default_factory=dict)
+    suppress_codes: frozenset[str] = frozenset()
+    default: Any = NO_DEFAULT
 
 
 @dataclass(frozen=True)
@@ -71,6 +105,7 @@ class OutputDefinition:
     template_names: tuple[str, ...] = ()
     row_projections: tuple[OutputRowProjection, ...] = ()
     link_rules: tuple[OutputLinkRule, ...] = ()
+    derivation_rules: tuple[DerivationRule, ...] = ()
     notes: tuple[str, ...] = ()
 
 
@@ -90,6 +125,7 @@ class CompiledOutputDefinition:
     template_names: tuple[str, ...]
     row_projections: tuple[CompiledRowProjection, ...]
     link_rules: tuple[OutputLinkRule, ...]
+    derivation_rules: tuple[DerivationRule, ...]
     notes: tuple[str, ...]
 
 
@@ -128,11 +164,13 @@ class OutputDefinitionRuntime:
         projected_rows: list[ProjectedOutputRow] = []
         row_ids: set[str] = set()
         unresolved_fields: list[dict[str, Any]] = []
+        suppressed_rows: list[SuppressedRow] = []
         audit_notes = list(compiled.notes)
 
         for row_projection in compiled.row_projections:
             resolved_fields = dict(row_projection.defaults)
             missing_fields: list[str] = []
+            row_suppressed = False
 
             for slot, binding in row_projection.field_bindings.items():
                 found, value = _resolve_binding(binding, context)
@@ -140,6 +178,41 @@ class OutputDefinitionRuntime:
                     missing_fields.append(slot)
                     continue
                 resolved_fields[slot] = value
+
+            for rule in compiled.derivation_rules:
+                if rule.target_row != row_projection.row_id:
+                    continue
+
+                found, raw_value = _resolve_binding(rule.source_field, context)
+                if not found:
+                    missing_fields.append(rule.target_slot)
+                    continue
+
+                code = str(raw_value)
+                if code in rule.suppress_codes:
+                    suppressed_rows.append(
+                        SuppressedRow(
+                            row_id=row_projection.row_id,
+                            reason=(
+                                f"derivation rule for '{rule.target_slot}' matched a "
+                                f"suppress code on '{rule.source_field.path}'"
+                            ),
+                            source_field=rule.source_field.path,
+                            source_code=code,
+                        )
+                    )
+                    row_suppressed = True
+                    break
+
+                if code in rule.code_map:
+                    resolved_fields[rule.target_slot] = rule.code_map[code]
+                elif rule.default is not NO_DEFAULT:
+                    resolved_fields[rule.target_slot] = rule.default
+                else:
+                    missing_fields.append(rule.target_slot)
+
+            if row_suppressed:
+                continue
 
             if missing_fields:
                 unresolved_fields.append(
@@ -205,6 +278,7 @@ class OutputDefinitionRuntime:
             rows=projected_rows,
             links=links,
             unresolved_fields=unresolved_fields,
+            suppressed_rows=suppressed_rows,
             audit_notes=audit_notes,
         )
 
@@ -230,6 +304,7 @@ class OutputDefinitionRuntime:
     def _compile_definition(self, definition: OutputDefinition) -> CompiledOutputDefinition:
         row_ids: set[str] = set()
         compiled_rows: list[CompiledRowProjection] = []
+        profile_by_row: dict[str, RuntimeProjectionProfile] = {}
         errors: list[str] = []
 
         for row_projection in definition.row_projections:
@@ -248,6 +323,7 @@ class OutputDefinitionRuntime:
                 )
                 continue
 
+            profile_by_row[row_projection.row_id] = profile
             compiled_rows.append(
                 CompiledRowProjection(
                     row_id=row_projection.row_id,
@@ -268,6 +344,20 @@ class OutputDefinitionRuntime:
                     f"link rule references unknown target_row '{link_rule.target_row}'"
                 )
 
+        for derivation_rule in definition.derivation_rules:
+            if derivation_rule.target_row not in row_ids:
+                errors.append(
+                    "derivation rule references unknown target_row "
+                    f"'{derivation_rule.target_row}'"
+                )
+                continue
+            profile = profile_by_row.get(derivation_rule.target_row)
+            if profile is not None and not profile.allows_slot(derivation_rule.target_slot):
+                errors.append(
+                    f"derivation rule for row '{derivation_rule.target_row}' targets slot "
+                    f"'{derivation_rule.target_slot}' not present in profile '{profile.name}'"
+                )
+
         if errors:
             raise ValueError(
                 f"Output definition '{definition.name}' failed validation:\n"
@@ -280,6 +370,7 @@ class OutputDefinitionRuntime:
             template_names=tuple(definition.template_names),
             row_projections=tuple(compiled_rows),
             link_rules=tuple(definition.link_rules),
+            derivation_rules=tuple(definition.derivation_rules),
             notes=tuple(definition.notes),
         )
 

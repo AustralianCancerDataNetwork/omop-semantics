@@ -78,6 +78,7 @@ GOLDEN_PROFILES = {
     "procedure_simple": ("procedure_occurrence", "procedure_concept_id", None, None, None, None, (), (), (), ()),
     "procedure_with_inline_modifier": ("procedure_occurrence", "procedure_concept_id", None, None, None, "modifier_concept_id", (), (), (), ()),
     "condition_simple": ("condition_occurrence", "condition_concept_id", None, None, None, None, (), (), (), ()),
+    "condition_with_status": ("condition_occurrence", "condition_concept_id", None, None, None, None, ("condition_status_concept_id",), (), (), ()),
     "drug_exposure_simple": ("drug_exposure", "drug_concept_id", None, None, None, None, (), (), (), ()),
     "drug_exposure_dose": ("drug_exposure", "drug_concept_id", "dose_value", None, None, None, (), (), (), ()),
     "drug_exposure_with_quantity_and_days_supply": ("drug_exposure", "drug_concept_id", None, None, None, None, (), ("quantity", "days_supply"), (), ()),

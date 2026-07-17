@@ -56,6 +56,11 @@ profiles:
   - name: condition_simple
     cdm_table: condition_occurrence
     concept_slot: condition_concept_id
+  - name: condition_with_status
+    cdm_table: condition_occurrence
+    concept_slot: condition_concept_id
+    extra_concept_slots:
+      - condition_status_concept_id
   - name: drug_exposure_simple
     cdm_table: drug_exposure
     concept_slot: drug_concept_id

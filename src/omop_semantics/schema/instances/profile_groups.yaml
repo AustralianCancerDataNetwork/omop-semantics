@@ -49,6 +49,7 @@ ConditionProfiles:
   role: cdm_profile_set
   members:
     - condition_simple
+    - condition_with_status
 
 
 DrugExposureProfiles:

@@ -26,6 +26,7 @@ from .projection import (
     ProjectedOutputRow,
     ProjectedOutputLink,
     ProjectedOutputBundle,
+    SuppressedRow,
 )
 from .output_definitions import (
     ContextFieldRef,
@@ -34,6 +35,8 @@ from .output_definitions import (
     OutputDefinition,
     CompiledOutputDefinition,
     OutputDefinitionRuntime,
+    DerivationRule,
+    NO_DEFAULT,
 )
 from typing import TYPE_CHECKING
 
@@ -59,10 +62,13 @@ __all__ = [
     "ProjectedOutputRow",
     "ProjectedOutputLink",
     "ProjectedOutputBundle",
+    "SuppressedRow",
     "ContextFieldRef",
     "OutputRowProjection",
     "OutputLinkRule",
     "OutputDefinition",
     "CompiledOutputDefinition",
     "OutputDefinitionRuntime",
+    "DerivationRule",
+    "NO_DEFAULT",
 ]
