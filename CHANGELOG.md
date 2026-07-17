@@ -59,3 +59,8 @@
 - light resolver cleanup
 - fix KeyError type
 - docs update
+
+# 0.3.0
+- added an executable output-definition layer so a grounded concept can deterministically project into one or more CDM rows, with richer profile shapes to describe them
+- added deterministic handling for row values that depend on a separate source field, or that should suppress the row entirely, always recorded explicitly rather than silently dropped
+- fully additive; existing grounding and profile behavior is unchanged
