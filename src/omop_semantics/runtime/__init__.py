@@ -37,6 +37,8 @@ from .output_definitions import (
     OutputDefinitionRuntime,
     DerivationRule,
     NO_DEFAULT,
+    SpecialValuePolicy,
+    SUPPRESSION_MODES,
 )
 from typing import TYPE_CHECKING
 
@@ -71,4 +73,6 @@ __all__ = [
     "OutputDefinitionRuntime",
     "DerivationRule",
     "NO_DEFAULT",
+    "SpecialValuePolicy",
+    "SUPPRESSION_MODES",
 ]

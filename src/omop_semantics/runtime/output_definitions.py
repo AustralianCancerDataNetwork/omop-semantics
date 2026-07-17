@@ -64,6 +64,38 @@ class DerivationRule:
     default: Any = NO_DEFAULT
 
 
+SUPPRESSION_MODES = frozenset({"drop", "fail", "keep_as_value", "keep_as_modifier"})
+"""Recognized `SpecialValuePolicy.suppression_mode` values.
+
+Only `drop` and `fail` have runtime behavior today — both are the degenerate,
+single-field case validated against real data (a "meets criteria for X" Yes/No
+item, where the negative answer carries no positive clinical content of its
+own). `keep_as_value` and `keep_as_modifier` are named here per the schema
+proposal so definitions can be authored against a stable enum, but they raise
+`NotImplementedError` if actually triggered — there is no validated use case
+yet for what they should bind.
+"""
+
+
+@dataclass(frozen=True)
+class SpecialValuePolicy:
+    """
+    Row-level suppression (or other handling) driven by the row's *own*
+    source value — the counterpart to `DerivationRule`, which reads a
+    different source field. Attach to `OutputRowProjection.special_value_policy`.
+
+    The canonical case is a Yes/No field phrased "meets criteria for X": Yes
+    grounds the row normally, No means nothing should be written for it. There
+    is no sibling field to consult, so no `DerivationRule` is involved — the
+    same value used to ground the row is checked against
+    `allowed_special_values`.
+    """
+
+    source_field: ContextFieldRef
+    allowed_special_values: frozenset[str] = frozenset()
+    suppression_mode: str = "drop"
+
+
 @dataclass(frozen=True)
 class OutputRowProjection:
     """
@@ -75,6 +107,7 @@ class OutputRowProjection:
     field_bindings: Mapping[str, BindingValue] = field(default_factory=dict)
     defaults: Mapping[str, Any] = field(default_factory=dict)
     required: bool = True
+    special_value_policy: SpecialValuePolicy | None = None
 
 
 @dataclass(frozen=True)
@@ -116,6 +149,7 @@ class CompiledRowProjection:
     field_bindings: Mapping[str, BindingValue]
     defaults: Mapping[str, Any]
     required: bool = True
+    special_value_policy: SpecialValuePolicy | None = None
 
 
 @dataclass(frozen=True)
@@ -210,6 +244,36 @@ class OutputDefinitionRuntime:
                     resolved_fields[rule.target_slot] = rule.default
                 else:
                     missing_fields.append(rule.target_slot)
+
+            policy = row_projection.special_value_policy
+            if policy is not None:
+                found, raw_value = _resolve_binding(policy.source_field, context)
+                if found:
+                    code = str(raw_value)
+                    if code in policy.allowed_special_values:
+                        if policy.suppression_mode == "drop":
+                            suppressed_rows.append(
+                                SuppressedRow(
+                                    row_id=row_projection.row_id,
+                                    reason=(
+                                        "special_value_policy matched "
+                                        f"'{policy.source_field.path}' == '{code}'"
+                                    ),
+                                    source_field=policy.source_field.path,
+                                    source_code=code,
+                                )
+                            )
+                            row_suppressed = True
+                        elif policy.suppression_mode == "fail":
+                            raise ValueError(
+                                f"row '{row_projection.row_id}' hit special value '{code}' "
+                                f"on '{policy.source_field.path}', configured to fail"
+                            )
+                        else:
+                            raise NotImplementedError(
+                                f"suppression_mode '{policy.suppression_mode}' has no "
+                                "runtime behavior yet"
+                            )
 
             if row_suppressed:
                 continue
@@ -323,6 +387,15 @@ class OutputDefinitionRuntime:
                 )
                 continue
 
+            policy = row_projection.special_value_policy
+            if policy is not None and policy.suppression_mode not in SUPPRESSION_MODES:
+                errors.append(
+                    f"row '{row_projection.row_id}' has special_value_policy with "
+                    f"unrecognized suppression_mode '{policy.suppression_mode}'; "
+                    f"expected one of {sorted(SUPPRESSION_MODES)}"
+                )
+                continue
+
             profile_by_row[row_projection.row_id] = profile
             compiled_rows.append(
                 CompiledRowProjection(
@@ -331,6 +404,7 @@ class OutputDefinitionRuntime:
                     field_bindings=dict(row_projection.field_bindings),
                     defaults=dict(row_projection.defaults),
                     required=row_projection.required,
+                    special_value_policy=policy,
                 )
             )
 

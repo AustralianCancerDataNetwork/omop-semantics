@@ -10,7 +10,34 @@ from omop_semantics.runtime import (
     OutputDefinition,
     OutputLinkRule,
     OutputRowProjection,
+    SpecialValuePolicy,
 )
+
+
+def _criteria_gate_definition(**overrides) -> OutputDefinition:
+    special_value_policy = overrides.pop(
+        "special_value_policy",
+        SpecialValuePolicy(
+            source_field=ContextFieldRef("source.raw_value"),
+            allowed_special_values=frozenset({"0"}),
+            suppression_mode="drop",
+        ),
+    )
+    return OutputDefinition(
+        name="criteria_gate_condition",
+        role="condition_modifier",
+        row_projections=(
+            OutputRowProjection(
+                row_id="condition",
+                profile_name="condition_simple",
+                field_bindings={
+                    "condition_concept_id": ContextFieldRef("grounded.concept_id"),
+                },
+                special_value_policy=special_value_policy,
+            ),
+        ),
+        **overrides,
+    )
 
 
 def _condition_with_status_definition(**overrides) -> OutputDefinition:
@@ -424,4 +451,132 @@ def test_derivation_rule_validates_target_slot_at_compile_time() -> None:
     )
 
     with pytest.raises(ValueError, match="targets slot 'bogus_slot' not present in profile"):
+        engine.build_output_definition_runtime([definition])
+
+
+def test_special_value_policy_leaves_row_intact_on_the_positive_answer() -> None:
+    engine = OmopSemanticEngine.from_yaml_paths(
+        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
+        profile_paths=[],
+    )
+    runtime = engine.build_output_definition_runtime([_criteria_gate_definition()])
+
+    bundle = runtime.project(
+        "criteria_gate_condition",
+        {
+            "grounded": {"concept_id": 4182210},
+            "source": {"raw_value": "1"},
+        },
+    )
+
+    assert len(bundle.rows) == 1
+    assert bundle.rows[0].fields == {"condition_concept_id": 4182210}
+    assert bundle.suppressed_rows == []
+
+
+def test_special_value_policy_drops_row_on_the_negative_answer() -> None:
+    engine = OmopSemanticEngine.from_yaml_paths(
+        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
+        profile_paths=[],
+    )
+    runtime = engine.build_output_definition_runtime([_criteria_gate_definition()])
+
+    bundle = runtime.project(
+        "criteria_gate_condition",
+        {
+            "grounded": {"concept_id": 4182210},
+            "source": {"raw_value": "0"},
+        },
+    )
+
+    assert bundle.rows == []
+    assert bundle.unresolved_fields == []
+    assert len(bundle.suppressed_rows) == 1
+    suppressed = bundle.suppressed_rows[0]
+    assert suppressed.row_id == "condition"
+    assert suppressed.source_field == "source.raw_value"
+    assert suppressed.source_code == "0"
+
+
+def test_special_value_policy_ignores_missing_source_field() -> None:
+    engine = OmopSemanticEngine.from_yaml_paths(
+        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
+        profile_paths=[],
+    )
+    runtime = engine.build_output_definition_runtime([_criteria_gate_definition()])
+
+    bundle = runtime.project(
+        "criteria_gate_condition",
+        {
+            "grounded": {"concept_id": 4182210},
+            "source": {},
+        },
+    )
+
+    assert len(bundle.rows) == 1
+    assert bundle.suppressed_rows == []
+
+
+def test_special_value_policy_fail_mode_raises() -> None:
+    engine = OmopSemanticEngine.from_yaml_paths(
+        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
+        profile_paths=[],
+    )
+    definition = _criteria_gate_definition(
+        special_value_policy=SpecialValuePolicy(
+            source_field=ContextFieldRef("source.raw_value"),
+            allowed_special_values=frozenset({"9"}),
+            suppression_mode="fail",
+        ),
+    )
+    runtime = engine.build_output_definition_runtime([definition])
+
+    with pytest.raises(ValueError, match="configured to fail"):
+        runtime.project(
+            "criteria_gate_condition",
+            {
+                "grounded": {"concept_id": 4182210},
+                "source": {"raw_value": "9"},
+            },
+        )
+
+
+def test_special_value_policy_unimplemented_mode_raises_not_implemented() -> None:
+    engine = OmopSemanticEngine.from_yaml_paths(
+        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
+        profile_paths=[],
+    )
+    definition = _criteria_gate_definition(
+        special_value_policy=SpecialValuePolicy(
+            source_field=ContextFieldRef("source.raw_value"),
+            allowed_special_values=frozenset({"0"}),
+            suppression_mode="keep_as_value",
+        ),
+    )
+    runtime = engine.build_output_definition_runtime([definition])
+
+    with pytest.raises(NotImplementedError, match="keep_as_value"):
+        runtime.project(
+            "criteria_gate_condition",
+            {
+                "grounded": {"concept_id": 4182210},
+                "source": {"raw_value": "0"},
+            },
+        )
+
+
+def test_special_value_policy_validates_suppression_mode_at_compile_time() -> None:
+    engine = OmopSemanticEngine.from_yaml_paths(
+        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
+        profile_paths=[],
+    )
+    definition = _criteria_gate_definition(
+        special_value_policy=SpecialValuePolicy(
+            source_field=ContextFieldRef("source.raw_value"),
+            allowed_special_values=frozenset({"0"}),
+            suppression_mode="bogus_mode",
+        ),
+    )
+
+    with pytest.raises(ValueError, match="unrecognized suppression_mode 'bogus_mode'"):
         engine.build_output_definition_runtime([definition])
