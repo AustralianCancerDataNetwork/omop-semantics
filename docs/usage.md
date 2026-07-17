@@ -115,7 +115,77 @@ for tpl in engine.registry_runtime.by_role_runtime("demographic"):
     table, row = build_row(tpl, concept_id=..., person_id=..., date=...)
 ```
 
-## 3. Fallback and default concepts
+## 3. Deterministic output definitions
+
+Use `OutputDefinitionRuntime` when a grounded concept needs to become one or more
+CDM rows, rather than a single template match.
+
+```python
+from omop_semantics.runtime import (
+    ContextFieldRef,
+    DerivationRule,
+    OutputDefinition,
+    OutputRowProjection,
+)
+
+definition = OutputDefinition(
+    name="condition_with_status_from_secondary_field",
+    role="condition_modifier",
+    row_projections=(
+        OutputRowProjection(
+            row_id="condition",
+            profile_name="condition_with_status",
+            field_bindings={
+                "condition_concept_id": ContextFieldRef("grounded.concept_id"),
+            },
+        ),
+    ),
+    derivation_rules=(
+        DerivationRule(
+            target_row="condition",
+            target_slot="condition_status_concept_id",
+            source_field=ContextFieldRef("source.role_field"),
+            code_map={"1": 32902, "2": 32908},   # Primary, Secondary/Contributing
+            suppress_codes=frozenset({"3"}),      # Non-contributing — drop the row
+        ),
+    ),
+)
+
+runtime = engine.build_output_definition_runtime([definition])
+bundle = runtime.project(
+    "condition_with_status_from_secondary_field",
+    {"grounded": {"concept_id": 4152280}, "source": {"role_field": "1"}},
+)
+
+bundle.rows[0].fields   # → {"condition_concept_id": 4152280, "condition_status_concept_id": 32902}
+```
+
+`DerivationRule` reads a source field other than the one that grounded the row —
+here, a Primary/Contributing/Non-contributing status collected in a separate
+field. `SpecialValuePolicy` covers the simpler case where the row's *own* source
+value decides whether it exists at all (e.g. a "meets criteria for X" Yes/No
+field, where the negative answer means nothing should be written):
+
+```python
+from omop_semantics.runtime import SpecialValuePolicy
+
+OutputRowProjection(
+    row_id="condition",
+    profile_name="condition_simple",
+    field_bindings={"condition_concept_id": ContextFieldRef("grounded.concept_id")},
+    special_value_policy=SpecialValuePolicy(
+        source_field=ContextFieldRef("source.raw_value"),
+        allowed_special_values=frozenset({"0"}),
+        suppression_mode="drop",
+    ),
+)
+```
+
+Either mechanism drops the row into `bundle.suppressed_rows` rather than
+omitting it silently — check there when a projection returns fewer rows than
+expected.
+
+## 4. Fallback and default concepts
 
 Use `omop_semantics.unknowns` when a pipeline needs a canonical fallback concept with a machine-readable reason code.
 
@@ -128,7 +198,7 @@ UNKNOWN["condition"].reason     # → "mapping_failed"
 
 `UNKNOWN` is read-only. See [Fallback Concepts](unknowns.md) for the full catalog.
 
-## 4. Lower-level loading helpers
+## 5. Lower-level loading helpers
 
 If you need to assemble registry fragments manually rather than using the engine, the lower-level helpers are available:
 

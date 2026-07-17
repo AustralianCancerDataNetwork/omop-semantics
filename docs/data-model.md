@@ -47,7 +47,7 @@ A **profile** describes the shape of a CDM row without making any semantic claim
   - `string_slots`
   - `reference_slots`
 
-Shipped profiles include `observation_simple`, `observation_coded`, `observation_string`, `observation_numeric`, `observation_numeric_with_unit`, `observation_with_qualifier`, `measurement_numeric`, `measurement_numeric_with_unit`, `measurement_numeric_with_operator`, `measurement_coded`, `measurement_simple`, `procedure_simple`, `procedure_with_inline_modifier`, `condition_simple`, `drug_exposure_simple`, `drug_exposure_dose`, `drug_exposure_with_quantity_and_days_supply`, `drug_exposure_with_route`, `device_simple`, `visit_simple`, `death_simple`, `specimen_simple`, and `specimen_with_site_status_quantity`.
+Shipped profiles include `observation_simple`, `observation_coded`, `observation_string`, `observation_numeric`, `observation_numeric_with_unit`, `observation_with_qualifier`, `measurement_numeric`, `measurement_numeric_with_unit`, `measurement_numeric_with_operator`, `measurement_coded`, `measurement_simple`, `procedure_simple`, `procedure_with_inline_modifier`, `condition_simple`, `condition_with_status`, `drug_exposure_simple`, `drug_exposure_dose`, `drug_exposure_with_quantity_and_days_supply`, `drug_exposure_with_route`, `device_simple`, `visit_simple`, `death_simple`, `specimen_simple`, and `specimen_with_site_status_quantity`.
 
 A profile is structural. A template gives it semantic meaning.
 
@@ -67,6 +67,24 @@ The current implementation slice provides this as a programmatic runtime surface
 - `OutputDefinitionRuntime`
 
 This is intentionally additive and runtime-only for now. A dedicated schema-backed YAML authoring surface can be added later once the execution model is stable.
+
+### Cross-field derivation and row suppression
+
+Most of the time a row's fields come from `field_bindings` — context reachable from
+the same grounded fact the row represents. Two situations don't fit that:
+
+**`DerivationRule`** populates a row's slot from a *different* source field than
+the one that grounded the row — the canonical case is a diagnosis paired with a
+separately-collected role/status field (Primary/Contributing/Non-contributing).
+The raw code is looked up in `code_map` to get a concept id; codes in
+`suppress_codes` drop the row entirely instead.
+
+**`SpecialValuePolicy`** suppresses a row based on its *own* source value, with no
+second field involved — a "meets criteria for X" Yes/No field is the canonical
+case, where the negative answer means nothing should be written.
+
+Both report through `ProjectedOutputBundle.suppressed_rows` rather than silently
+omitting the row: suppression is a deterministic outcome, not a lost fact.
 
 ## Profile groups
 

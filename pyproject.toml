@@ -28,7 +28,7 @@ dev = [
   "mypy>=1.8",
   "ruff>=0.4",
   "rich>=13.0",
-  "tornado>=6.5.5",
+  "tornado>=6.5.7",
   "pygments>=2.20.0"
 ]
 docs = [

@@ -51,9 +51,13 @@ for tpl in engine.registry_runtime.by_role_runtime("demographic"):
 
 **`RuntimeProjectionProfile`** is the attribute-based structural runtime view over one CDM profile. Use it when you need to know which slots are legal for a projected row.
 
-**`ProjectedOutputBundle`** is a transport-friendly container for deterministic projected rows, links, constraint checks, unresolved fields, and audit notes. It is additive groundwork for later output-definition execution layers.
+**`ProjectedOutputBundle`** is a transport-friendly container for deterministic projected rows, links, constraint checks, unresolved fields, suppressed rows, and audit notes. Rows dropped by a `DerivationRule` or `SpecialValuePolicy` appear in `suppressed_rows`, never silently absent from the bundle.
 
 **`OutputDefinitionRuntime`** compiles programmatic output definitions against the loaded profile catalogue and projects deterministic bundles from context dictionaries. This is the first execution slice above structural CDM profiles; it is runtime-only for now and does not yet require a dedicated YAML schema.
+
+**`DerivationRule`** resolves one row's slot from a source field other than the one that grounded the row, via a code-to-concept lookup, with `suppress_codes` to drop the row entirely for certain raw values. Attach to `OutputDefinition.derivation_rules`.
+
+**`SpecialValuePolicy`** suppresses (or, in modes not yet implemented, otherwise handles) a row based on its own source value rather than a sibling field. Attach to `OutputRowProjection.special_value_policy`.
 
 **`SemanticProfileRuntime`** provides read-only access to raw profile object dictionaries loaded from symbolic YAML files. Used for documentation and inspection, not for ETL execution. Available via `engine.profile_runtime` when `profile_paths` are provided.
 
@@ -72,6 +76,10 @@ for tpl in engine.registry_runtime.by_role_runtime("demographic"):
 ::: omop_semantics.runtime.ProjectedOutputBundle
 
 ::: omop_semantics.runtime.OutputDefinitionRuntime
+
+::: omop_semantics.runtime.DerivationRule
+
+::: omop_semantics.runtime.SpecialValuePolicy
 
 ::: omop_semantics.runtime.OmopTemplateRuntime
 
