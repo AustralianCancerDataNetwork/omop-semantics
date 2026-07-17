@@ -15,6 +15,9 @@ ObservationProfiles:
     - observation_simple
     - observation_coded
     - observation_string
+    - observation_numeric
+    - observation_numeric_with_unit
+    - observation_with_qualifier
   notes: Valid CDM projection profiles for the OMOP OBSERVATION table
 
 
@@ -24,7 +27,10 @@ MeasurementProfiles:
   role: cdm_profile_set
   members:
     - measurement_numeric
+    - measurement_numeric_with_unit
+    - measurement_numeric_with_operator
     - measurement_coded
+    - measurement_simple
   notes: Valid CDM projection profiles for the OMOP MEASUREMENT table
 
 
@@ -34,6 +40,7 @@ ProcedureProfiles:
   role: cdm_profile_set
   members:
     - procedure_simple
+    - procedure_with_inline_modifier
 
 
 ConditionProfiles:
@@ -51,3 +58,38 @@ DrugExposureProfiles:
   members:
     - drug_exposure_simple
     - drug_exposure_dose
+    - drug_exposure_with_quantity_and_days_supply
+    - drug_exposure_with_route
+
+
+DeviceProfiles:
+  class_uri: RegistryGroup
+  name: DeviceProfiles
+  role: cdm_profile_set
+  members:
+    - device_simple
+
+
+VisitProfiles:
+  class_uri: RegistryGroup
+  name: VisitProfiles
+  role: cdm_profile_set
+  members:
+    - visit_simple
+
+
+DeathProfiles:
+  class_uri: RegistryGroup
+  name: DeathProfiles
+  role: cdm_profile_set
+  members:
+    - death_simple
+
+
+SpecimenProfiles:
+  class_uri: RegistryGroup
+  name: SpecimenProfiles
+  role: cdm_profile_set
+  members:
+    - specimen_simple
+    - specimen_with_site_status_quantity

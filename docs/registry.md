@@ -47,6 +47,14 @@ for tpl in engine.registry_runtime.by_role_runtime("demographic"):
 
 **`RuntimeTemplate`** is an attribute-based view over a `CompiledTemplate`. Access `tpl.name`, `tpl.role`, `tpl.cdm_profile`, `tpl.entity_concept_ids`, `tpl.value_concept_ids` directly.
 
+**`ProjectionProfileRuntime`** provides indexed access to the structural CDM profile catalogue, including richer low-level slots such as units, operators, inline modifiers, numeric fields, and references. Available via `engine.projection_profiles`.
+
+**`RuntimeProjectionProfile`** is the attribute-based structural runtime view over one CDM profile. Use it when you need to know which slots are legal for a projected row.
+
+**`ProjectedOutputBundle`** is a transport-friendly container for deterministic projected rows, links, constraint checks, unresolved fields, and audit notes. It is additive groundwork for later output-definition execution layers.
+
+**`OutputDefinitionRuntime`** compiles programmatic output definitions against the loaded profile catalogue and projects deterministic bundles from context dictionaries. This is the first execution slice above structural CDM profiles; it is runtime-only for now and does not yet require a dedicated YAML schema.
+
 **`SemanticProfileRuntime`** provides read-only access to raw profile object dictionaries loaded from symbolic YAML files. Used for documentation and inspection, not for ETL execution. Available via `engine.profile_runtime` when `profile_paths` are provided.
 
 ## API reference
@@ -56,6 +64,14 @@ for tpl in engine.registry_runtime.by_role_runtime("demographic"):
 ::: omop_semantics.runtime.OmopRegistryRuntime
 
 ::: omop_semantics.runtime.RuntimeTemplate
+
+::: omop_semantics.runtime.ProjectionProfileRuntime
+
+::: omop_semantics.runtime.RuntimeProjectionProfile
+
+::: omop_semantics.runtime.ProjectedOutputBundle
+
+::: omop_semantics.runtime.OutputDefinitionRuntime
 
 ::: omop_semantics.runtime.OmopTemplateRuntime
 

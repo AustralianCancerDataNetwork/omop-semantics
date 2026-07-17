@@ -20,6 +20,21 @@ from .resolver import (
     OmopSemanticObject,
     SemanticProfileRuntime
 )
+from .projection import (
+    ProjectionProfileRuntime,
+    RuntimeProjectionProfile,
+    ProjectedOutputRow,
+    ProjectedOutputLink,
+    ProjectedOutputBundle,
+)
+from .output_definitions import (
+    ContextFieldRef,
+    OutputRowProjection,
+    OutputLinkRule,
+    OutputDefinition,
+    CompiledOutputDefinition,
+    OutputDefinitionRuntime,
+)
 from typing import TYPE_CHECKING
 
 
@@ -39,4 +54,15 @@ __all__ = [
     "render_registry_fragment",
     "render_profile_groups",
     "SemanticProfileRuntime",
+    "ProjectionProfileRuntime",
+    "RuntimeProjectionProfile",
+    "ProjectedOutputRow",
+    "ProjectedOutputLink",
+    "ProjectedOutputBundle",
+    "ContextFieldRef",
+    "OutputRowProjection",
+    "OutputLinkRule",
+    "OutputDefinition",
+    "CompiledOutputDefinition",
+    "OutputDefinitionRuntime",
 ]

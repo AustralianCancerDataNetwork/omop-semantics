@@ -45,6 +45,13 @@ def interpolate_profiles(group: dict, profiles: dict[str, OmopCdmProfile]) -> No
             "cdm_table": profile.cdm_table,
             "concept_slot": profile.concept_slot,
             "value_slot": profile.value_slot,
+            "unit_slot": profile.unit_slot,
+            "operator_slot": profile.operator_slot,
+            "modifier_slot": profile.modifier_slot,
+            "extra_concept_slots": profile.extra_concept_slots,
+            "numeric_slots": profile.numeric_slots,
+            "string_slots": profile.string_slots,
+            "reference_slots": profile.reference_slots,
         }
 
         member.pop("concept_slot", None)

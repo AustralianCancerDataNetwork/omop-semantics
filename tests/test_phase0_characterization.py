@@ -64,17 +64,29 @@ GOLDEN_DEMOGRAPHIC_REGISTRY = {
 }
 
 GOLDEN_PROFILES = {
-    "observation_simple": ("observation", "observation_concept_id", None),
-    "observation_coded": ("observation", "observation_concept_id", "value_as_concept_id"),
-    "observation_string": ("observation", "observation_concept_id", "value_as_string"),
-    "measurement_numeric": ("measurement", "measurement_concept_id", "value_as_number"),
-    "measurement_coded": ("measurement", "measurement_concept_id", "value_as_concept_id"),
-    "measurement_simple": ("measurement", "measurement_concept_id", None),  # added: PR1/T1
-    "procedure_simple": ("procedure_occurrence", "procedure_concept_id", None),
-    "condition_simple": ("condition_occurrence", "condition_concept_id", None),
-    "drug_exposure_simple": ("drug_exposure", "drug_concept_id", None),
-    "drug_exposure_dose": ("drug_exposure", "drug_concept_id", "dose_value"),
-    "device_simple": ("device_exposure", "device_concept_id", None),  # added: PR1/T4
+    "observation_simple": ("observation", "observation_concept_id", None, None, None, None, (), (), (), ()),
+    "observation_coded": ("observation", "observation_concept_id", "value_as_concept_id", None, None, None, (), (), (), ()),
+    "observation_string": ("observation", "observation_concept_id", "value_as_string", None, None, None, (), (), (), ()),
+    "observation_numeric": ("observation", "observation_concept_id", "value_as_number", None, None, None, (), (), (), ()),
+    "observation_numeric_with_unit": ("observation", "observation_concept_id", "value_as_number", "unit_concept_id", None, None, (), (), (), ()),
+    "observation_with_qualifier": ("observation", "observation_concept_id", None, None, None, None, ("qualifier_concept_id",), (), (), ()),
+    "measurement_numeric": ("measurement", "measurement_concept_id", "value_as_number", None, None, None, (), (), (), ()),
+    "measurement_numeric_with_unit": ("measurement", "measurement_concept_id", "value_as_number", "unit_concept_id", None, None, (), (), (), ()),
+    "measurement_numeric_with_operator": ("measurement", "measurement_concept_id", "value_as_number", "unit_concept_id", "operator_concept_id", None, (), (), (), ()),
+    "measurement_coded": ("measurement", "measurement_concept_id", "value_as_concept_id", None, None, None, (), (), (), ()),
+    "measurement_simple": ("measurement", "measurement_concept_id", None, None, None, None, (), (), (), ()),
+    "procedure_simple": ("procedure_occurrence", "procedure_concept_id", None, None, None, None, (), (), (), ()),
+    "procedure_with_inline_modifier": ("procedure_occurrence", "procedure_concept_id", None, None, None, "modifier_concept_id", (), (), (), ()),
+    "condition_simple": ("condition_occurrence", "condition_concept_id", None, None, None, None, (), (), (), ()),
+    "drug_exposure_simple": ("drug_exposure", "drug_concept_id", None, None, None, None, (), (), (), ()),
+    "drug_exposure_dose": ("drug_exposure", "drug_concept_id", "dose_value", None, None, None, (), (), (), ()),
+    "drug_exposure_with_quantity_and_days_supply": ("drug_exposure", "drug_concept_id", None, None, None, None, (), ("quantity", "days_supply"), (), ()),
+    "drug_exposure_with_route": ("drug_exposure", "drug_concept_id", None, None, None, None, ("route_concept_id",), (), (), ()),
+    "device_simple": ("device_exposure", "device_concept_id", None, None, None, None, (), (), (), ()),
+    "visit_simple": ("visit_occurrence", "visit_concept_id", None, None, None, None, (), (), (), ()),
+    "death_simple": ("death", "death_type_concept_id", None, None, None, None, (), (), (), ()),
+    "specimen_simple": ("specimen", "specimen_concept_id", None, None, None, None, (), (), (), ()),
+    "specimen_with_site_status_quantity": ("specimen", "specimen_concept_id", None, "unit_concept_id", None, None, ("anatomic_site_concept_id", "disease_status_concept_id"), ("quantity",), (), ()),
 }
 
 GOLDEN_CDM_TABLES = {
@@ -84,6 +96,12 @@ GOLDEN_CDM_TABLES = {
     "procedure_occurrence",
     "condition_occurrence",
     "device_exposure",  # added: PR1/T4
+    "visit_occurrence",
+    "death",
+    "specimen",
+    "fact_relationship",
+    "episode",
+    "episode_event",
 }
 
 
@@ -135,7 +153,19 @@ def test_p0_symbolic_files_load_without_error():
 def test_p0_profile_catalogue_golden():
     profiles = load_profiles(INSTANCE_DIR / "profiles.yaml")
     actual = {
-        name: (p.cdm_table, p.concept_slot, p.value_slot) for name, p in profiles.items()
+        name: (
+            p.cdm_table,
+            p.concept_slot,
+            p.value_slot,
+            p.unit_slot,
+            p.operator_slot,
+            p.modifier_slot,
+            tuple(p.extra_concept_slots or ()),
+            tuple(p.numeric_slots or ()),
+            tuple(p.string_slots or ()),
+            tuple(p.reference_slots or ()),
+        )
+        for name, p in profiles.items()
     }
     assert actual == GOLDEN_PROFILES
 
@@ -295,8 +325,29 @@ def test_p0_interpolate_profiles_expands_named_cdm_profile():
         "cdm_table": "observation",
         "concept_slot": "observation_concept_id",
         "value_slot": None,
+        "unit_slot": None,
+        "operator_slot": None,
+        "modifier_slot": None,
+        "extra_concept_slots": None,
+        "numeric_slots": None,
+        "string_slots": None,
+        "reference_slots": None,
     }
     assert "concept_slot" not in member and "value_slot" not in member
+
+
+def test_p0_interpolate_profiles_preserves_extended_profile_fields():
+    profiles = load_profiles(INSTANCE_DIR / "profiles.yaml")
+    group = {
+        "name": "g",
+        "registry_members": [
+            {"name": "tpl", "role": "measurement", "cdm_profile": "measurement_numeric_with_operator"}
+        ],
+    }
+    interpolate_profiles(group, profiles)
+    member = group["registry_members"][0]["cdm_profile"]
+    assert member["unit_slot"] == "unit_concept_id"
+    assert member["operator_slot"] == "operator_concept_id"
 
 
 def test_p0_interpolate_profiles_unknown_profile_raises():

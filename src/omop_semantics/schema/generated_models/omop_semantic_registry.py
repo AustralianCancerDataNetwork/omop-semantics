@@ -92,6 +92,12 @@ class CdmTable(str, Enum):
     procedure_occurrence = "procedure_occurrence"
     condition_occurrence = "condition_occurrence"
     device_exposure = "device_exposure"
+    visit_occurrence = "visit_occurrence"
+    death = "death"
+    specimen = "specimen"
+    fact_relationship = "fact_relationship"
+    episode = "episode"
+    episode_event = "episode_event"
 
 
 
@@ -212,6 +218,13 @@ class OmopCdmProfile(ConfiguredBaseModel):
     cdm_table: CdmTable = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
     concept_slot: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
     value_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    unit_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    operator_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    modifier_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    extra_concept_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    numeric_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    string_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    reference_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
 
 
 class OmopTemplate(ConfiguredBaseModel):

@@ -38,10 +38,35 @@ A **profile** describes the shape of a CDM row without making any semantic claim
 - the target CDM table
 - the concept slot (e.g. `observation_concept_id`)
 - optionally, the value slot (e.g. `value_as_concept_id`, `value_as_string`, `value_as_number`)
+- optionally, richer structural slots such as:
+  - `unit_slot`
+  - `operator_slot`
+  - `modifier_slot`
+  - `extra_concept_slots`
+  - `numeric_slots`
+  - `string_slots`
+  - `reference_slots`
 
-Shipped profiles include `observation_simple`, `observation_coded`, `observation_string`, `measurement_numeric`, `measurement_coded`, `measurement_simple`, `procedure_simple`, `condition_simple`, `drug_exposure_simple`, `drug_exposure_dose`, and `device_simple`.
+Shipped profiles include `observation_simple`, `observation_coded`, `observation_string`, `observation_numeric`, `observation_numeric_with_unit`, `observation_with_qualifier`, `measurement_numeric`, `measurement_numeric_with_unit`, `measurement_numeric_with_operator`, `measurement_coded`, `measurement_simple`, `procedure_simple`, `procedure_with_inline_modifier`, `condition_simple`, `drug_exposure_simple`, `drug_exposure_dose`, `drug_exposure_with_quantity_and_days_supply`, `drug_exposure_with_route`, `device_simple`, `visit_simple`, `death_simple`, `specimen_simple`, and `specimen_with_site_status_quantity`.
 
 A profile is structural. A template gives it semantic meaning.
+
+## Output definitions
+
+An **output definition** sits above profiles and templates. It does not replace either:
+
+- profiles still describe valid CDM row shapes
+- templates still describe semantic admissibility for grounded concepts
+- output definitions describe how one deterministic semantic result becomes one or more projected rows and links
+
+The current implementation slice provides this as a programmatic runtime surface:
+
+- `OutputDefinition`
+- `OutputRowProjection`
+- `OutputLinkRule`
+- `OutputDefinitionRuntime`
+
+This is intentionally additive and runtime-only for now. A dedicated schema-backed YAML authoring surface can be added later once the execution model is stable.
 
 ## Profile groups
 

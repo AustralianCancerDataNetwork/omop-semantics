@@ -15,6 +15,13 @@ classes:
       - cdm_table
       - concept_slot
       - value_slot
+      - unit_slot
+      - operator_slot
+      - modifier_slot
+      - extra_concept_slots
+      - numeric_slots
+      - string_slots
+      - reference_slots
 slots:
   profiles:
     range: OmopCdmProfile
@@ -31,6 +38,31 @@ slots:
   value_slot:
     range: string
     required: false
+  unit_slot:
+    range: string
+    required: false
+  operator_slot:
+    range: string
+    required: false
+  modifier_slot:
+    range: string
+    required: false
+  extra_concept_slots:
+    range: string
+    multivalued: true
+    required: false
+  numeric_slots:
+    range: string
+    multivalued: true
+    required: false
+  string_slots:
+    range: string
+    multivalued: true
+    required: false
+  reference_slots:
+    range: string
+    multivalued: true
+    required: false
 enums:
   CdmTable:
     description: OMOP CDM table to which a semantic template applies
@@ -41,3 +73,9 @@ enums:
       procedure_occurrence:
       condition_occurrence:
       device_exposure:
+      visit_occurrence:
+      death:
+      specimen:
+      fact_relationship:
+      episode:
+      episode_event:

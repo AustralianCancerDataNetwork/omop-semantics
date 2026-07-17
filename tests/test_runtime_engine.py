@@ -44,7 +44,13 @@ def test_semantic_engine_exposes_profile_groups_and_value_scopes() -> None:
         "observation_simple",
         "observation_coded",
         "observation_string",
+        "observation_numeric",
+        "observation_numeric_with_unit",
+        "observation_with_qualifier",
     ]
+    assert "VisitProfiles" in groups
+    assert groups["VisitProfiles"]["members"] == ["visit_simple"]
+    assert "SpecimenProfiles" in groups
 
     language_spoken = engine.registry_runtime.get_runtime("Language spoken")
     assert language_spoken.cdm_profile.name == "observation_coded"

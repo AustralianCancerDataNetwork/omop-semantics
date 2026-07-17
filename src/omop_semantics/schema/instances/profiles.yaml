@@ -10,10 +10,35 @@ profiles:
     cdm_table: observation
     concept_slot: observation_concept_id
     value_slot: value_as_string
+  - name: observation_numeric
+    cdm_table: observation
+    concept_slot: observation_concept_id
+    value_slot: value_as_number
+  - name: observation_numeric_with_unit
+    cdm_table: observation
+    concept_slot: observation_concept_id
+    value_slot: value_as_number
+    unit_slot: unit_concept_id
+  - name: observation_with_qualifier
+    cdm_table: observation
+    concept_slot: observation_concept_id
+    extra_concept_slots:
+      - qualifier_concept_id
   - name: measurement_numeric
     cdm_table: measurement
     concept_slot: measurement_concept_id
     value_slot: value_as_number
+  - name: measurement_numeric_with_unit
+    cdm_table: measurement
+    concept_slot: measurement_concept_id
+    value_slot: value_as_number
+    unit_slot: unit_concept_id
+  - name: measurement_numeric_with_operator
+    cdm_table: measurement
+    concept_slot: measurement_concept_id
+    value_slot: value_as_number
+    unit_slot: unit_concept_id
+    operator_slot: operator_concept_id
   - name: measurement_coded
     cdm_table: measurement
     concept_slot: measurement_concept_id
@@ -24,6 +49,10 @@ profiles:
   - name: procedure_simple
     cdm_table: procedure_occurrence
     concept_slot: procedure_concept_id
+  - name: procedure_with_inline_modifier
+    cdm_table: procedure_occurrence
+    concept_slot: procedure_concept_id
+    modifier_slot: modifier_concept_id
   - name: condition_simple
     cdm_table: condition_occurrence
     concept_slot: condition_concept_id
@@ -34,6 +63,35 @@ profiles:
     cdm_table: drug_exposure
     concept_slot: drug_concept_id
     value_slot: dose_value
+  - name: drug_exposure_with_quantity_and_days_supply
+    cdm_table: drug_exposure
+    concept_slot: drug_concept_id
+    numeric_slots:
+      - quantity
+      - days_supply
+  - name: drug_exposure_with_route
+    cdm_table: drug_exposure
+    concept_slot: drug_concept_id
+    extra_concept_slots:
+      - route_concept_id
   - name: device_simple
     cdm_table: device_exposure
     concept_slot: device_concept_id
+  - name: visit_simple
+    cdm_table: visit_occurrence
+    concept_slot: visit_concept_id
+  - name: death_simple
+    cdm_table: death
+    concept_slot: death_type_concept_id
+  - name: specimen_simple
+    cdm_table: specimen
+    concept_slot: specimen_concept_id
+  - name: specimen_with_site_status_quantity
+    cdm_table: specimen
+    concept_slot: specimen_concept_id
+    extra_concept_slots:
+      - anatomic_site_concept_id
+      - disease_status_concept_id
+    numeric_slots:
+      - quantity
+    unit_slot: unit_concept_id

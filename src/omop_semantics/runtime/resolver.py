@@ -22,6 +22,8 @@ from .instance_loader import (
     needs_profile_interpolation,
 )
 from omop_semantics.utils.paths import INSTANCE_DIR
+from .projection import ProjectionProfileRuntime, RuntimeProjectionProfile
+from .output_definitions import OutputDefinition, OutputDefinitionRuntime
 
 
 class CompiledTemplate(TypedDict):
@@ -202,6 +204,13 @@ class RuntimeTemplate:
             entity_concept_ids=c["entity_concept_ids"],
             value_concept_ids=c["value_concept_ids"],
         )
+
+    @property
+    def projection_profile(self) -> RuntimeProjectionProfile:
+        """
+        Structural runtime view of the underlying CDM profile.
+        """
+        return RuntimeProjectionProfile.from_profile(self.cdm_profile)
 
 
 @dataclass(frozen=True)
@@ -999,6 +1008,7 @@ class OmopSemanticEngine:
         self,
         registry_fragment: RegistryFragment,
         profile_objects: dict[str, dict] | None = None,
+        cdm_profiles: dict[str, OmopCdmProfile] | None = None,
     ):
         """
         Construct a semantic engine from an already-loaded registry fragment.
@@ -1020,6 +1030,11 @@ class OmopSemanticEngine:
         self.profile_runtime = (
             SemanticProfileRuntime(profile_objects)
             if profile_objects is not None
+            else None
+        )
+        self.projection_profiles = (
+            ProjectionProfileRuntime(cdm_profiles)
+            if cdm_profiles is not None
             else None
         )
 
@@ -1098,6 +1113,7 @@ class OmopSemanticEngine:
         return cls(
             registry_fragment=merged_fragment,
             profile_objects=profile_objects or None,
+            cdm_profiles=cdm_profiles,
         )
 
     def docs_html(self) -> Html:
@@ -1122,3 +1138,18 @@ class OmopSemanticEngine:
             ])
 
         return Html("".join(parts))
+
+    def build_output_definition_runtime(
+        self,
+        definitions: Iterable[OutputDefinition],
+    ) -> OutputDefinitionRuntime:
+        """
+        Compile programmatic output definitions against the loaded profile catalogue.
+
+        This is the additive bridge from structural CDM profiles to deterministic
+        output bundles. The first implementation slice is intentionally runtime-only
+        and does not require a dedicated YAML schema for output definitions.
+        """
+        if self.projection_profiles is None:
+            raise RuntimeError("Projection profiles are not available on this semantic engine")
+        return OutputDefinitionRuntime(definitions, self.projection_profiles)
