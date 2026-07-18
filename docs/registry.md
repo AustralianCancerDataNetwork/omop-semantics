@@ -86,3 +86,5 @@ for tpl in engine.registry_runtime.by_role_runtime("demographic"):
 ::: omop_semantics.runtime.OmopSemanticResolver
 
 ::: omop_semantics.runtime.SemanticProfileRuntime
+
+::: omop_semantics.runtime.viz

@@ -50,6 +50,7 @@ plugins:
 nav:
   - Home: index.md
   - Usage: usage.md
+  - Visualization: visualization.md
   - Data Model: data-model.md
   - Schema & Instances: schema-and-instances.md
   - Fallback Concepts: unknowns.md

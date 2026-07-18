@@ -40,6 +40,19 @@ from .output_definitions import (
     SpecialValuePolicy,
     SUPPRESSION_MODES,
 )
+from .viz import (
+    DefinitionOutline,
+    MermaidIdAllocator,
+    RowOutline,
+    bundle_to_html,
+    bundle_to_mermaid,
+    catalogue_to_html,
+    catalogue_to_mermaid,
+    derive_status,
+    describe_definition,
+    escape_html_text,
+    escape_mermaid_label,
+)
 from typing import TYPE_CHECKING
 
 
@@ -75,4 +88,15 @@ __all__ = [
     "NO_DEFAULT",
     "SpecialValuePolicy",
     "SUPPRESSION_MODES",
+    "DefinitionOutline",
+    "MermaidIdAllocator",
+    "RowOutline",
+    "bundle_to_html",
+    "bundle_to_mermaid",
+    "catalogue_to_html",
+    "catalogue_to_mermaid",
+    "derive_status",
+    "describe_definition",
+    "escape_html_text",
+    "escape_mermaid_label",
 ]

@@ -68,6 +68,8 @@ The current implementation slice provides this as a programmatic runtime surface
 
 This is intentionally additive and runtime-only for now. A dedicated schema-backed YAML authoring surface can be added later once the execution model is stable.
 
+Use the [Visualization](visualization.md) runtime helpers to inspect what a compiled definition produces for one input and why rows were kept, suppressed, or left unresolved.
+
 ### Cross-field derivation and row suppression
 
 Most of the time a row's fields come from `field_bindings` — context reachable from
