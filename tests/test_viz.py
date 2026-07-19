@@ -16,6 +16,7 @@ from omop_semantics.runtime import (
     bundle_to_mermaid,
     catalogue_to_html,
     catalogue_to_mermaid,
+    derive_status,
     describe_definition,
 )
 
@@ -271,3 +272,11 @@ def test_bundle_to_mermaid_escapes_user_supplied_labels() -> None:
     assert "&#124;" in mermaid
     assert "<script>alert" not in html.raw
     assert "&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;" in html.raw
+
+
+def test_derive_status_covers_all_phase2_outcomes() -> None:
+    assert derive_status(has_rows=True, has_unresolved=False, has_suppressed=False) == "ok"
+    assert derive_status(has_rows=True, has_unresolved=True, has_suppressed=False) == "partial"
+    assert derive_status(has_rows=False, has_unresolved=True, has_suppressed=False) == "partial"
+    assert derive_status(has_rows=False, has_unresolved=False, has_suppressed=True) == "suppressed"
+    assert derive_status(has_rows=False, has_unresolved=False, has_suppressed=False) == "no_match"
