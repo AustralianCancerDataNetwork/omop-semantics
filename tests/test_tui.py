@@ -33,6 +33,19 @@ def _runtime():
     )
 
 
+def _runtime_with_placeholder():
+    return _engine().build_output_definition_runtime(
+        [_placeholder_definition(), _condition_with_status_definition()]
+    )
+
+
+def _placeholder_definition() -> OutputDefinition:
+    return OutputDefinition(
+        name="placeholder_definition",
+        role="condition_modifier",
+    )
+
+
 def _condition_with_status_definition() -> OutputDefinition:
     return OutputDefinition(
         name="condition_with_status_from_secondary_field",
@@ -163,6 +176,23 @@ def test_tui_selection_populates_definition_hint_in_context() -> None:
             await pilot.pause()
             payload = json.loads(app.query_one("#context", TextArea).text)
             assert payload["definition_hint"] == "criteria_gate_condition"
+
+    asyncio.run(scenario())
+
+
+def test_tui_placeholder_definition_loads_without_row_projections() -> None:
+    async def scenario() -> None:
+        runtime = _runtime_with_placeholder()
+        app = OutputDefinitionExplorer(runtime, project_fn=_service_mode_project(runtime))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            catalogue = app.query_one("#catalogue", Tree)
+            placeholder_node = _child_with_label(catalogue.root, "placeholder_definition")
+            catalogue.select_node(placeholder_node)
+            await pilot.pause()
+            payload = json.loads(app.query_one("#context", TextArea).text)
+            assert payload["definition_hint"] == "placeholder_definition"
+            assert payload["grounded_domain"] == ""
 
     asyncio.run(scenario())
 

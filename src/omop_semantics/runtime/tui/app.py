@@ -233,7 +233,8 @@ class OutputDefinitionExplorer(App[None]):
 
     def _context_template(self, definition_name: str) -> dict[str, Any]:
         compiled = self._runtime.get(definition_name)
-        domain = _DOMAIN_BY_TABLE.get(compiled.row_projections[0].profile.cdm_table, "")
+        table = compiled.row_projections[0].profile.cdm_table if compiled.row_projections else ""
+        domain = _DOMAIN_BY_TABLE.get(table, "")
         if self._service_mode:
             return {
                 "grounded_concept_id": 0,

@@ -9,10 +9,11 @@ terminal session.
 The TUI dependencies are optional:
 
 ```bash
-uv sync --extra dev
+uv sync --extra tui
 ```
 
-For a non-development install, install the package with its `tui` extra.
+For contributor workflows, `uv sync --extra dev` also includes the TUI
+dependencies alongside the test and lint tooling.
 
 ## Launch
 
@@ -52,6 +53,6 @@ For the meaning of those states, see [Visualization](../visualization.md).
 
 Selecting a definition in the tree loads a starter JSON payload into the
 context pane. Child rows and annotations are browsable without changing the
-current context. When the app is launched through `groundworkers --tui`, that
-payload uses the flat `SemanticProjectionRequest` shape so it can be pasted
-directly into the real worker-backed flow.
+current context. When the app is embedded by an external caller, that payload
+can use the flat `SemanticProjectionRequest` shape so it can be pasted
+directly into a worker-backed flow.
