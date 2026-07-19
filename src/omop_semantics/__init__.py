@@ -33,6 +33,7 @@ def main(argv: "list[str] | None" = None) -> int:
 
     Subcommands:
       gen-models   (re)generate the committed pydantic models from the LinkML schema.
+      tui          launch the interactive output-definition explorer.
     """
     import sys
 
@@ -41,6 +42,10 @@ def main(argv: "list[str] | None" = None) -> int:
         from omop_semantics.schema.codegen import cli as gen_models_cli
 
         return gen_models_cli(argv[1:])
+    if argv and argv[0] == "tui":
+        from omop_semantics.runtime.tui.app import cli as tui_cli
 
-    print("usage: omop-semantics gen-models [--check] [--out DIR]", file=sys.stderr)
+        return tui_cli(argv[1:])
+
+    print("usage: omop-semantics {gen-models|tui} ...", file=sys.stderr)
     return 2

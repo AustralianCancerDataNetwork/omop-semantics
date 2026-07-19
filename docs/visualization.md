@@ -144,3 +144,8 @@ inputs, and suppression annotations without requiring a concrete input context.
 Inline notebook display via `IPython.display.HTML(html.raw)` is convenient, but
 it is best-effort only. Browser viewing of the saved `.html` file is the
 guaranteed path across notebook front ends and local environments.
+
+## Interactive exploration
+
+For a terminal-based browse/edit/run loop, use the Textual explorer documented
+in [TUI Explorer](usage/tui.md).
