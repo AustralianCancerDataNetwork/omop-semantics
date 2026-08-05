@@ -33,7 +33,14 @@ valuesets:
       - cancer_consult_types
       - encounter_provider_specialty
       - cancer_procedure_types
+      - cancer_indicating_surgery_parent_concepts
+      - cancer_indicating_surgery_point_concepts
+      - diagnostic_staging_procedure_parent_concepts
+      - diagnostic_staging_procedure_point_concepts
       - procedures_by_location
+  - name: sact
+    semantic_units:
+      - sact_drug_classification
   - name: measurements_numeric
     semantic_units:
       - body_size_units

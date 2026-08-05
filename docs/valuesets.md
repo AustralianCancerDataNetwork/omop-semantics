@@ -39,6 +39,11 @@ All labelled-concept types (`RuntimeEnum`, `RuntimeGroup`) expose:
 | `.labels` | sorted `list[str]` of labels |
 | `.mapper()` | `dict[str, int]` label → concept_id |
 
+`RuntimeGroup` can also define excluded parent concepts for rules shaped as one
+hierarchy closure minus another. Excluded labels are still addressable as
+attributes, while `.ids` and `.mapper()` remain the included anchors only. Use
+`.excluded_ids` or `.excluded_mapper()` for the excluded closure.
+
 `RuntimeSemanticUnit` additionally exposes `.enums`, `.groups`, and `.concepts` as dictionaries for direct access to the underlying objects.
 
 ## What value sets are available
@@ -53,7 +58,8 @@ The shipped value sets are defined in `instances/valuesets.yaml`. Current top-le
 | `treatment_modifiers` | Treatment intent, modality, and modifier values |
 | `condition_modifiers` | Condition modifier values, tumour grade, numeric modifiers, condition status |
 | `nlp` | Document type, encoding, and language |
-| `cancer_procedures` | Consult types, provider specialties, procedure types, location |
+| `cancer_procedures` | Consult types, provider specialties, broad procedure types, cancer-indicating surgery anchors, diagnostic/staging procedure anchors, location |
+| `sact` | SACT drug inclusion and exclusion anchors |
 | `measurements_numeric` | Body size units and measurements, lab values, smoking, PROMs, performance status |
 | `staging` | T, N, M, and group stage concepts plus stage edition |
 | `visits` | Visit modalities |

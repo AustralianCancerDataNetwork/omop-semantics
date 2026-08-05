@@ -67,3 +67,8 @@
 
 # 0.4.0
 - added Mermaid-based visualization for output-definition catalogues and projected bundles, and an optional interactive terminal explorer built on them
+
+# 0.5.0
+- brachy therapy
+- excluded_parent_concepts support on OmopGroup
+- new groups: cancer_indicating_surgery_parent_concepts, cancer_indicating_surgery_point_concepts

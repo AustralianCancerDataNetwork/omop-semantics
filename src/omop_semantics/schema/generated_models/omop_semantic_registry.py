@@ -123,6 +123,8 @@ class OmopGroup(OmopSemanticObject):
                                       'name': 'class_uri'}}})
 
     parent_concepts: Optional[list[Concept]] = Field(default=None, description="""Semantic parent concepts or grouping parents.""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
+    excluded_parent_concepts: Optional[list[Concept]] = Field(default=None, description="""Parent concepts whose descendant closure is excluded from the positive group membership. Use this when a governed value set is defined as one hierarchy closure minus another, such as SACT drugs excluding supportive medications.
+""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
     class_uri: Literal["OmopGroup"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopGroup'} })
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',

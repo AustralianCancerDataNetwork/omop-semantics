@@ -101,15 +101,35 @@ class RuntimeGroup(_RuntimeLabelledConcepts):
     def __init__(self, group: OmopGroup):
         self._group = group
         self._name = group.name or '[group]'
-        self._by_label = {
+        self._included_by_label = {
             c.label: c.concept_id
             for c in (group.parent_concepts or [])
             if c and c.label and c.concept_id
         }
+        self._excluded_by_label = {
+            c.label: c.concept_id
+            for c in (group.excluded_parent_concepts or [])
+            if c and c.label and c.concept_id
+        }
+        self._by_label = self._included_by_label | self._excluded_by_label
+
+    @property
+    def ids(self) -> set[int]:
+        return set(self._included_by_label.values())
+
+    @property
+    def excluded_ids(self) -> set[int]:
+        return set(self._excluded_by_label.values())
+
+    def mapper(self) -> dict[str, int]:
+        return dict(self._included_by_label)
+
+    def excluded_mapper(self) -> dict[str, int]:
+        return dict(self._excluded_by_label)
 
     @property
     def is_singleton(self) -> bool:
-        return len(self._by_label) == 1
+        return len(self._included_by_label) == 1
     
     @property
     def value(self) -> int:
@@ -120,13 +140,27 @@ class RuntimeGroup(_RuntimeLabelledConcepts):
             raise AttributeError(
                 f"Group '{self._group.name}' has multiple parent concepts"
             )
-        return next(iter(self._by_label.values()))
+        return next(iter(self._included_by_label.values()))
     
     def __int__(self) -> int:
         """
         Allow int(runtime.group) for singleton groups.
         """
         return self.value
+
+    def _repr_html_(self) -> str:
+        rows = [
+            tr([label, cid, "included"])
+            for label, cid in sorted(self._included_by_label.items())
+        ]
+        rows.extend(
+            tr([label, cid, "excluded"])
+            for label, cid in sorted(self._excluded_by_label.items())
+        )
+        return Html(
+            f"<h4>{h(self.kind_label)}: {h(self._name)}</h4>"
+            + table(rows, header=["Label", "Concept ID", "Role"])
+        ).raw
 
 class RuntimeEnum(_RuntimeLabelledConcepts):
 
@@ -236,7 +270,7 @@ class RuntimeSemanticUnit:
             for value in labelled_item.values():
                 try:
                     return getattr(value, name)
-                except KeyError:
+                except AttributeError:
                     pass
 
         raise KeyError(name)
@@ -258,8 +292,10 @@ class RuntimeSemanticUnit:
         for name in sorted(self.enums):
             rows.append(tr(["Enum", name, ", ".join(self.enums[name]._by_label.keys())]))
         for name, g in sorted(self.groups.items()):
-            if g._group.parent_concepts:
-                rows.append(tr(["Group", name, ", ".join(c.label for c in g._group.parent_concepts if c and c.label)]))
+            labels = list(g._included_by_label)
+            labels.extend(f"not {label}" for label in g._excluded_by_label)
+            if labels:
+                rows.append(tr(["Group", name, ", ".join(labels)]))
         for name in sorted(self.concepts):
             rows.append(tr(["Concept", name, ""]))
 

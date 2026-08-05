@@ -315,8 +315,75 @@ named_groups:
         label: rn_procedure
       - concept_id: 4141448
         label: rt_externalbeam
+      - concept_id: 40317890
+        label: rt_brachytherapy
       - concept_id: 37163499
         label: rt_course
+  - name: cancer_indicating_surgery_parent_concepts
+    class_uri: OmopGroup
+    notes: >
+      More specific surgery anchors that can indicate cancer-directed surgery
+      in detailed procedure classification. These intentionally do not replace
+      the broad surgical_procedure anchor used when a construct needs all
+      surgery minus radiotherapy and radioisotope procedures.
+    parent_concepts:
+      - concept_id: 4000882
+        label: lung_excision
+      - concept_id: 4041977
+        label: gi_tract_excision
+      - concept_id: 4029565
+        label: large_intestine_excision
+      - concept_id: 4027426
+        label: kidney_excision
+      - concept_id: 4029571
+        label: urinary_bladder_excision
+      - concept_id: 4250917
+        label: prostate_operation
+      - concept_id: 4194253
+        label: breast_operation
+      - concept_id: 4171687
+        label: liver_operation
+      - concept_id: 4027422
+        label: endocrine_system_excision
+      - concept_id: 4238646
+        label: lymph_node_excision
+  - name: cancer_indicating_surgery_point_concepts
+    class_uri: OmopGroup
+    notes: >
+      Direct procedure concepts that can indicate cancer-directed surgery when
+      no useful OMOP ancestor captures the concept.
+    parent_concepts:
+      - concept_id: 4054047
+        label: lobectomy
+  - name: diagnostic_staging_procedure_parent_concepts
+    class_uri: OmopGroup
+    notes: >
+      Diagnostic and staging procedures are kept separate from treatment
+      surgery because they establish extent of disease rather than treating it.
+    parent_concepts:
+      - concept_id: 4228202
+        label: excisional_biopsy
+  - name: diagnostic_staging_procedure_point_concepts
+    class_uri: OmopGroup
+    notes: >
+      Direct diagnostic and staging procedure concepts that are not captured by
+      a useful OMOP ancestor.
+    parent_concepts:
+      - concept_id: 4120443
+        label: bone_marrow_sampling
+  - name: sact_drug_classification
+    class_uri: OmopGroup
+    notes: >
+      Systemic anti-cancer therapy drug classification is ATC L
+      (antineoplastic and immunomodulating agents) minus HemOnc supportive
+      medication. This concept-identity rule deliberately leaves
+      dual-purpose corticosteroids on the supportive side.
+    parent_concepts:
+      - concept_id: 21601386
+        label: atc_antineoplastic_and_immunomodulating
+    excluded_parent_concepts:
+      - concept_id: 35807271
+        label: hemonc_supportive_medication
   - name: procedures_by_location
     class_uri: OmopGroup
     parent_concepts:
@@ -398,4 +465,3 @@ named_groups:
         label: laterality
       - concept_id: 36769180
         label: metastatic_disease
-

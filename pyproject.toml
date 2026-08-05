@@ -1,6 +1,6 @@
 [project]
 name = "omop-semantics"
-version = "0.4.0"
+version = "0.5.0"
 description = "Define, validate, and use schema-backed semantic conventions for OMOP CDM"
 readme = "README.md"
 authors = [

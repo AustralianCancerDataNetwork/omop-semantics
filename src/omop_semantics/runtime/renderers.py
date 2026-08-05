@@ -149,9 +149,15 @@ def render_semantic_object(obj: OmopSemanticObject | None) -> Html:
             for p in as_list(obj.parent_concepts)
             if p.concept_id is not None
         )
+        exclusions = ", ".join(
+            f"{h(p.concept_id)} ({h(p.label)})"
+            for p in as_list(obj.excluded_parent_concepts)
+            if p.concept_id is not None
+        )
         return Html(
             f"<b>Group</b>: {h(obj.name)}<br/>"
             f"<small>Anchors: {parents or '—'}</small>"
+            + (f"<br/><small>Excluded anchors: {exclusions}</small>" if exclusions else "")
         )
 
     if isinstance(obj, OmopEnum):
@@ -184,9 +190,20 @@ def render_profile_object(obj: dict) -> Html:
             for a in anchors
             if isinstance(a, dict)
         )
+        exclusions = as_list(obj.get("excluded_parent_concepts"))
+        exclusions_str = ", ".join(
+            f"{a.get('concept_id')} ({a.get('label')})"
+            for a in exclusions
+            if isinstance(a, dict)
+        )
         return Html(
             f"<b>Group</b>: {h(obj.get('name'))}"
             + (f"<br/><small>Anchors: {h(anchors_str)}</small>" if anchors_str else "")
+            + (
+                f"<br/><small>Excluded anchors: {h(exclusions_str)}</small>"
+                if exclusions_str
+                else ""
+            )
         )
 
     if class_uri == "OmopEnum":

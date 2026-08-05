@@ -36,6 +36,7 @@ classes:
       T stage concepts.
     slots:
       - parent_concepts
+      - excluded_parent_concepts
     slot_usage:
       class_uri:
         equals_string: OmopGroup
@@ -103,7 +104,16 @@ slots:
   parent_concepts:
     range: Concept
     multivalued: true
-    description: Semantic parent concepts or grouping parents. 
+    description: Semantic parent concepts or grouping parents.
+
+  excluded_parent_concepts:
+    range: Concept
+    multivalued: true
+    description: >
+      Parent concepts whose descendant closure is excluded from the positive
+      group membership. Use this when a governed value set is defined as one
+      hierarchy closure minus another, such as SACT drugs excluding supportive
+      medications.
 
   enum_members:
     range: Concept
@@ -121,4 +131,3 @@ slots:
   class_uri:
     range: string
     required: true
-
