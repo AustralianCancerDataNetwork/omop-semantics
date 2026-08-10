@@ -405,6 +405,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#governed-semantic-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Governed semantic units
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#templates" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -679,6 +690,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#governed-semantic-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Governed semantic units
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#templates" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -813,6 +835,19 @@ An explicitly listed, static set of concepts. Use this for short, stable lists t
 <p><strong><code>OmopValueSet</code></strong><br />
 A composite of the above. Use this when a template slot accepts concepts from multiple groups or enums — for example, a staging template whose entity could be T-stage, N-stage, or group-stage concepts.</p>
 <p>At runtime, all four resolve to <code>set[int]</code> via <code>OmopSemanticResolver.resolve()</code>.</p>
+<h2 id="governed-semantic-units">Governed semantic units<a class="headerlink" href="#governed-semantic-units" title="Permanent link">&para;</a></h2>
+<p>The value-set runtime uses <code>RuntimeSemanticUnit</code> as the composition boundary for
+concept sets whose members have different matching semantics. A governed unit
+can contain at most one <code>OmopGroup</code>, plus exact <code>OmopEnum</code> or <code>OmopConcept</code>
+members. Its intended membership is:</p>
+<div class="highlight"><pre><span></span><code>(descendants(parent anchors) − descendants(excluded parent anchors))
+∪ exact members
+</code></pre></div>
+<p>The runtime remains database-free and publishes these roles separately through
+<code>.parent_ids</code>, <code>.excluded_parent_ids</code>, and <code>.exact_ids</code>. Downstream consumers
+perform descendant expansion and set evaluation against their vocabulary.</p>
+<p><code>OmopSemanticResolver</code> continues to resolve semantic primitives, not composed
+<code>RuntimeSemanticUnit</code> values. Use the value-set runtime for governed composition.</p>
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
 <p>A <strong>template</strong> binds a semantic primitive to a CDM row shape. It has:</p>
 <ul>

@@ -854,7 +854,10 @@
 <span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">genomic_negative</span>
 </code></pre></div></p>
 <h3 id="valuesetsyaml"><code>valuesets.yaml</code><a class="headerlink" href="#valuesetsyaml" title="Permanent link">&para;</a></h3>
-<p>Groups named enumerators into top-level runtime namespaces. Each value set entry has a name and a <code>semantic_units</code> list of enumerator names (string references resolved at load time).</p>
+<p>Groups named semantic objects into top-level runtime namespaces. A
+<code>semantic_units</code> entry can be a simple string reference or a named composite
+mapping. Composite units combine at most one descendant-expanding group with
+exact enums or named concepts.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">valuesets</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">genomic</span>
 <span class="w">    </span><span class="nt">semantic_units</span><span class="p">:</span>
@@ -865,8 +868,19 @@
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">t_stage_concepts</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">n_stage_concepts</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">group_stage_concepts</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_procedures</span>
+<span class="w">    </span><span class="nt">semantic_units</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_indicating_surgery</span>
+<span class="w">        </span><span class="nt">notes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Cancer-directed surgery with exact members.</span>
+<span class="w">        </span><span class="nt">named_groups</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_indicating_surgery_parent_concepts</span>
+<span class="w">        </span><span class="nt">named_enumerators</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_indicating_surgery_point_concepts</span>
 </code></pre></div>
-<p>These names become the top-level attributes on the <code>runtime</code> object: <code>runtime.genomic</code>, <code>runtime.staging</code>, etc.</p>
+<p>Value-set names become top-level attributes such as <code>runtime.genomic</code>. Semantic
+unit names become the next level, such as
+<code>runtime.cancer_procedures.cancer_indicating_surgery</code>. Typed references inside a
+composite are constituents, not additional semantic-unit paths in that value set.</p>
 <h3 id="profilesyaml"><code>profiles.yaml</code><a class="headerlink" href="#profilesyaml" title="Permanent link">&para;</a></h3>
 <p>Defines the CDM row shapes available to templates. Each profile names the target table, the concept slot, and (optionally) the value slot.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">profiles</span><span class="p">:</span>

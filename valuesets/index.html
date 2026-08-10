@@ -632,6 +632,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.exact_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exact_ids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.excluded_parent_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        excluded_parent_ids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.parent_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parent_ids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#omop_semantics.runtime.value_sets.RuntimeEnum" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -848,6 +881,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.exact_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        exact_ids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.excluded_parent_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        excluded_parent_ids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.parent_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parent_ids
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#omop_semantics.runtime.value_sets.RuntimeEnum" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -965,44 +1031,73 @@
 <div class="highlight"><pre><span></span><code>RuntimeValueSets (runtime)
   └── RuntimeValueSet (runtime.staging)
         └── RuntimeSemanticUnit (runtime.staging.t_stage_concepts)
-              ├── RuntimeEnum    — fixed concept list
-              └── RuntimeGroup   — anchor-concept-based group
+              ├── RuntimeEnum    — exact, fixed concept list
+              ├── RuntimeGroup   — descendant-expanding anchors
+              └── OmopConcept    — exact singleton
 </code></pre></div>
-<p>Access works at any level. <code>runtime.staging.t3</code> and <code>runtime.staging.t_stage_concepts.t3</code> both return the same concept id — the lookup falls through from the value set to its units and their members.</p>
+<p>Access remains scoped to each level of the hierarchy. A value set exposes its
+semantic-unit names, and a semantic unit exposes the labels from its constituent
+groups, enums, and concepts. For example,
+<code>runtime.staging.t_stage_concepts.t3</code> returns the concept id, while
+<code>runtime.staging.t3</code> raises <code>AttributeError</code> because <code>t3</code> is not a semantic-unit
+name.</p>
+<p>A semantic unit can compose one group with exact enums or named concepts. This
+keeps expansion semantics explicit while publishing one governed concept set:</p>
+<div class="highlight"><pre><span></span><code><span class="n">surgery</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">cancer_procedures</span><span class="o">.</span><span class="n">cancer_indicating_surgery</span>
+<span class="n">surgery</span><span class="o">.</span><span class="n">parent_ids</span>           <span class="c1"># anchors whose descendants are included</span>
+<span class="n">surgery</span><span class="o">.</span><span class="n">exact_ids</span>            <span class="c1"># concepts matched exactly</span>
+<span class="n">surgery</span><span class="o">.</span><span class="n">excluded_parent_ids</span>  <span class="c1"># anchors whose descendants are excluded</span>
+</code></pre></div>
 <h3 id="runtimegroup-singleton-shortcut"><code>RuntimeGroup</code> singleton shortcut<a class="headerlink" href="#runtimegroup-singleton-shortcut" title="Permanent link">&para;</a></h3>
-<p>A group with exactly one parent concept collapses to a plain <code>int</code> on attribute access. A group with multiple parents returns the <code>RuntimeGroup</code> object. Call <code>.is_singleton</code> to test this explicitly, or use <code>.ids</code> to always get a <code>set[int]</code> regardless.</p>
+<p>A group with exactly one parent concept collapses to a plain <code>int</code> on attribute access. A group with multiple parents returns the <code>RuntimeGroup</code> object. Call <code>.is_singleton</code> to test this explicitly, or retrieve the group through <code>unit.groups[name]</code> when role-specific access is required.</p>
 <h3 id="available-methods">Available methods<a class="headerlink" href="#available-methods" title="Permanent link">&para;</a></h3>
-<p>All labelled-concept types (<code>RuntimeEnum</code>, <code>RuntimeGroup</code>) expose:</p>
+<p>All labelled-concept types expose label lookup and a sorted <code>.labels</code> list.
+Their set accessors differ intentionally:</p>
 <table>
 <thead>
 <tr>
+<th>Runtime type</th>
 <th>Attribute / Method</th>
 <th>Returns</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>.&lt;label&gt;</code></td>
-<td><code>int</code> concept_id</td>
+<td><code>RuntimeEnum</code></td>
+<td><code>.ids</code>, <code>.mapper()</code></td>
+<td>complete exact members</td>
 </tr>
 <tr>
-<td><code>.ids</code></td>
-<td><code>set[int]</code> of all concept ids</td>
+<td><code>RuntimeGroup</code></td>
+<td><code>.parent_ids</code>, <code>.parent_mapper()</code></td>
+<td>descendant-expanding inclusion anchors</td>
 </tr>
 <tr>
-<td><code>.labels</code></td>
-<td>sorted <code>list[str]</code> of labels</td>
+<td><code>RuntimeGroup</code></td>
+<td><code>.excluded_parent_ids</code>, <code>.excluded_parent_mapper()</code></td>
+<td>descendant-expanding exclusion anchors</td>
 </tr>
 <tr>
-<td><code>.mapper()</code></td>
-<td><code>dict[str, int]</code> label → concept_id</td>
+<td><code>RuntimeSemanticUnit</code></td>
+<td><code>.exact_ids</code>, <code>.exact_mapper()</code></td>
+<td>enum and named-concept members matched exactly</td>
+</tr>
+<tr>
+<td><code>RuntimeSemanticUnit</code></td>
+<td><code>.parent_ids</code>, <code>.parent_mapper()</code></td>
+<td>descendant-expanding inclusion anchors from its governed group</td>
+</tr>
+<tr>
+<td><code>RuntimeSemanticUnit</code></td>
+<td><code>.excluded_parent_ids</code>, <code>.excluded_parent_mapper()</code></td>
+<td>descendant-expanding exclusion anchors from its governed group</td>
 </tr>
 </tbody>
 </table>
-<p><code>RuntimeGroup</code> can also define excluded parent concepts for rules shaped as one
-hierarchy closure minus another. Excluded labels are still addressable as
-attributes, while <code>.ids</code> and <code>.mapper()</code> remain the included anchors only. Use
-<code>.excluded_ids</code> or <code>.excluded_mapper()</code> for the excluded closure.</p>
+<p><code>RuntimeGroup.ids</code>, <code>RuntimeGroup.mapper()</code>, <code>RuntimeGroup.excluded_ids</code>, and
+<code>RuntimeGroup.excluded_mapper()</code> are deprecated compatibility aliases. Group-backed
+<code>RuntimeSemanticUnit.ids</code> is also deprecated because a flat set cannot preserve
+parent-versus-exact expansion semantics. Enum-only semantic-unit <code>.ids</code> remains supported.</p>
 <p><code>RuntimeSemanticUnit</code> additionally exposes <code>.enums</code>, <code>.groups</code>, and <code>.concepts</code> as dictionaries for direct access to the underlying objects.</p>
 <h2 id="what-value-sets-are-available">What value sets are available<a class="headerlink" href="#what-value-sets-are-available" title="Permanent link">&para;</a></h2>
 <p>The shipped value sets are defined in <code>instances/valuesets.yaml</code>. Current top-level names:</p>
@@ -1040,7 +1135,7 @@ attributes, while <code>.ids</code> and <code>.mapper()</code> remain the includ
 </tr>
 <tr>
 <td><code>cancer_procedures</code></td>
-<td>Consult types, provider specialties, broad procedure types, cancer-indicating surgery anchors, diagnostic/staging procedure anchors, location</td>
+<td>Consult types, provider specialties, governed radiotherapy, cancer-indicating surgery, diagnostic/staging procedures, and location</td>
 </tr>
 <tr>
 <td><code>sact</code></td>
@@ -1089,6 +1184,23 @@ attributes, while <code>.ids</code> and <code>.mapper()</code> remain the includ
 <span class="n">runtime</span> <span class="o">=</span> <span class="n">compile_valuesets</span><span class="p">(</span><span class="n">value_set_objects</span><span class="p">)</span>
 </code></pre></div>
 <p>Substitute your own YAML file paths to load project-specific value sets or extend the shipped ones.</p>
+<p>Simple semantic-unit entries remain string references. To compose descendant
+anchors with exact members, use a named mapping with typed reference lists:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">valuesets</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_procedures</span>
+<span class="w">    </span><span class="nt">semantic_units</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_indicating_surgery</span>
+<span class="w">        </span><span class="nt">notes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Cancer-directed surgery with exact exceptions.</span>
+<span class="w">        </span><span class="nt">named_groups</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_indicating_surgery_parent_concepts</span>
+<span class="w">        </span><span class="nt">named_enumerators</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cancer_indicating_surgery_point_concepts</span>
+</code></pre></div>
+<p>A composite unit may contain at most one group. Its membership is the resolved
+group result union its exact enum and named-concept members. Typed references are
+constituents of the named composite; they do not create additional semantic-unit
+paths in that value set. Access the exact members above through
+<code>runtime.cancer_procedures.cancer_indicating_surgery.exact_ids</code>.</p>
 <h2 id="api-reference">API reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
 
 
@@ -1237,6 +1349,78 @@ RuntimeSemanticUnit(...)
 
 
 
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="omop_semantics.runtime.value_sets.RuntimeSemanticUnit.exact_ids" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">exact_ids</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.exact_ids" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">exact_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return exact members declared by enums and named concepts.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="omop_semantics.runtime.value_sets.RuntimeSemanticUnit.excluded_parent_ids" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">excluded_parent_ids</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.excluded_parent_ids" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">excluded_parent_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return excluded descendant-expanding anchors from the governed group.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="omop_semantics.runtime.value_sets.RuntimeSemanticUnit.parent_ids" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">parent_ids</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#omop_semantics.runtime.value_sets.RuntimeSemanticUnit.parent_ids" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">parent_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return descendant-expanding anchors from the unit's governed group.</p>
+
+    </div>
+
+</div>
+
 
 
 
@@ -1291,11 +1475,11 @@ attribute access:</p>
           <tr class="doc-section-item">
             <td><code><span title="omop_semantics.runtime.value_sets.RuntimeEnum.ids">ids</span></code></td>
             <td>
-                  <code><span title="list">list</span>[<span title="int">int</span>]</code>
+                  <code><span title="set">set</span>[<span title="int">int</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Sorted list of concept IDs in the enum.</p>
+                <p>Complete set of exact concept IDs in the enum.</p>
               </div>
             </td>
           </tr>
@@ -1343,9 +1527,11 @@ attribute access:</p>
 
 
         <p>Runtime wrapper around an <code>OmopGroup</code>.</p>
-<p>Exposes the group's parent concepts as an attribute-accessible namespace,
-mapping concept labels to OMOP concept IDs. This allows interactive access
-such as:</p>
+<p>Exposes descendant-expanding parent concepts and excluded parent concepts
+as an attribute-accessible namespace. Use the role-specific accessors when
+passing concepts to downstream vocabulary expansion. <code>ids</code> and
+<code>mapper()</code> are deprecated parent-only compatibility aliases.</p>
+<p>This allows interactive access such as:</p>
 <div class="highlight"><pre><span></span><code>&gt;&gt;&gt; runtime.staging.t_stage_concepts.t3
 1634376
 </code></pre></div>
@@ -1504,10 +1690,11 @@ and rule logic. It is intentionally pure and read-only.</p>
 <a id="omop_semantics.runtime.value_sets.interpolate_valuesets"></a>
     <div class="doc doc-contents first">
 
-        <p>Interpolate raw value set definitions by resolving string references.</p>
-<p>This replaces string references in <code>valuesets.yaml</code> with concrete
-<code>CDMSemanticUnits</code> instances wrapping the corresponding OMOP semantic
-objects.</p>
+        <p>Interpolate value set definitions by resolving simple or composite references.</p>
+<p>A string member keeps the compact one-object-per-unit form. A mapping can
+compose one named semantic unit from references in <code>named_groups</code>,
+<code>named_enumerators</code>, and <code>named_concepts</code>. Composite units intentionally
+permit at most one group so parent exclusions retain one unambiguous scope.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
