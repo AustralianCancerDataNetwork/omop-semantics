@@ -17,6 +17,19 @@ def test_default_valuesets_support_stable_attribute_access() -> None:
     assert runtime.types.source_types.ehr_defined == 32544
 
 
+def test_runtime_attribute_lookup_respects_namespace_boundaries() -> None:
+    assert runtime.staging.t_stage_concepts.t3 == 1634376
+
+    assert not hasattr(runtime.staging, "t3")
+    assert not hasattr(runtime.staging.t_stage_concepts, "not_a_concept")
+    assert not hasattr(runtime, "not_a_value_set")
+
+    with pytest.raises(AttributeError):
+        runtime.staging.t3
+    with pytest.raises(AttributeError):
+        runtime.staging.t_stage_concepts.not_a_concept
+
+
 def test_default_valuesets_expose_id_sets_for_downstream_use() -> None:
     episode_types = runtime.types.disease_episode_types
 

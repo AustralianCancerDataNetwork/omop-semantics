@@ -399,7 +399,7 @@ class RuntimeSemanticUnit:
                 except AttributeError:
                     pass
 
-        raise KeyError(name)
+        raise AttributeError(name) from None
 
     def __repr__(self) -> str:
         parts = []
@@ -523,7 +523,10 @@ class RuntimeValueSets:
     def __getattr__(self, name: str) -> RuntimeValueSet:
         if name.startswith('_'):
             raise AttributeError(name)
-        return self._valuesets[name]
+        try:
+            return self._valuesets[name]
+        except KeyError:
+            raise AttributeError(name) from None
 
     def __repr__(self) -> str:
         keys = ", ".join(sorted(self._valuesets.keys()))

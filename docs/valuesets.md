@@ -23,7 +23,12 @@ RuntimeValueSets (runtime)
               └── OmopConcept    — exact singleton
 ```
 
-Access works at any level. `runtime.staging.t3` and `runtime.staging.t_stage_concepts.t3` both return the same concept id — the lookup falls through from the value set to its units and their members.
+Access remains scoped to each level of the hierarchy. A value set exposes its
+semantic-unit names, and a semantic unit exposes the labels from its constituent
+groups, enums, and concepts. For example,
+`runtime.staging.t_stage_concepts.t3` returns the concept id, while
+`runtime.staging.t3` raises `AttributeError` because `t3` is not a semantic-unit
+name.
 
 A semantic unit can compose one group with exact enums or named concepts. This
 keeps expansion semantics explicit while publishing one governed concept set:
