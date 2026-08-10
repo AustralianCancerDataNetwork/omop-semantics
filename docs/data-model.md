@@ -20,6 +20,25 @@ A composite of the above. Use this when a template slot accepts concepts from mu
 
 At runtime, all four resolve to `set[int]` via `OmopSemanticResolver.resolve()`.
 
+## Governed semantic units
+
+The value-set runtime uses `RuntimeSemanticUnit` as the composition boundary for
+concept sets whose members have different matching semantics. A governed unit
+can contain at most one `OmopGroup`, plus exact `OmopEnum` or `OmopConcept`
+members. Its intended membership is:
+
+```text
+(descendants(parent anchors) − descendants(excluded parent anchors))
+∪ exact members
+```
+
+The runtime remains database-free and publishes these roles separately through
+`.parent_ids`, `.excluded_parent_ids`, and `.exact_ids`. Downstream consumers
+perform descendant expansion and set evaluation against their vocabulary.
+
+`OmopSemanticResolver` continues to resolve semantic primitives, not composed
+`RuntimeSemanticUnit` values. Use the value-set runtime for governed composition.
+
 ## Templates
 
 A **template** binds a semantic primitive to a CDM row shape. It has:

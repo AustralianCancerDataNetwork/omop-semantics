@@ -16,6 +16,7 @@ classes:
   CDMSemanticUnits:
     slots:
       - name
+      - notes
       - named_enumerators
       - named_concepts
       - named_groups

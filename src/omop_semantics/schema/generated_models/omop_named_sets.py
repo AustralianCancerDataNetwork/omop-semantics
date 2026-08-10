@@ -78,7 +78,7 @@ class OmopSemanticObject(ConfiguredBaseModel):
 
     class_uri: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
-    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
+    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
 
 
 class OmopGroup(OmopSemanticObject):
@@ -95,7 +95,7 @@ class OmopGroup(OmopSemanticObject):
 """, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopGroup']} })
     class_uri: Literal["OmopGroup"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopGroup'} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
-    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
+    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
 
 
 class OmopConcept(OmopSemanticObject):
@@ -110,7 +110,7 @@ class OmopConcept(OmopSemanticObject):
     label: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopConcept', 'Concept']} })
     class_uri: Literal["OmopConcept"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopConcept'} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
-    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
+    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
 
 
 class OmopEnum(OmopSemanticObject):
@@ -125,7 +125,7 @@ class OmopEnum(OmopSemanticObject):
     enum_members: list[Concept] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopEnum']} })
     class_uri: Literal["OmopEnum"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopEnum'} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
-    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
+    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
 
 
 class OmopValueSet(OmopSemanticObject):
@@ -140,7 +140,7 @@ class OmopValueSet(OmopSemanticObject):
     members: Optional[list[OmopSemanticObject]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopValueSet']} })
     class_uri: Literal["OmopValueSet"] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject'], 'equals_string': 'OmopValueSet'} })
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
-    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
+    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
 
 
 class Concept(ConfiguredBaseModel):
@@ -172,6 +172,7 @@ class CDMSemanticUnits(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/cdm_value_sets'})
 
     name: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
+    notes: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject', 'CDMSemanticUnits']} })
     named_enumerators: Optional[list[OmopEnum]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
     named_concepts: Optional[list[OmopConcept]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })
     named_groups: Optional[list[OmopGroup]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMSemanticUnits']} })

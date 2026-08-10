@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, TypeVar, Type, cast
+
 from linkml_runtime.loaders import yaml_loader
 from omop_semantics.schema.generated_models.omop_semantic_registry import (
     RegistryFragment, 
@@ -7,11 +8,6 @@ from omop_semantics.schema.generated_models.omop_semantic_registry import (
     OmopCdmProfile,
     CDMProfiles
 )
-
-
-from collections import defaultdict
-from pathlib import Path
-from typing import TypeVar, Type, cast, Iterable
 
 T = TypeVar("T")
 
@@ -40,19 +36,10 @@ def interpolate_profiles(group: dict, profiles: dict[str, OmopCdmProfile]) -> No
         if not profile:
             raise KeyError(f"Unknown cdm_profile '{profile_name}'")
 
-        member["cdm_profile"] = {
-            "name": profile.name,
-            "cdm_table": profile.cdm_table,
-            "concept_slot": profile.concept_slot,
-            "value_slot": profile.value_slot,
-            "unit_slot": profile.unit_slot,
-            "operator_slot": profile.operator_slot,
-            "modifier_slot": profile.modifier_slot,
-            "extra_concept_slots": profile.extra_concept_slots,
-            "numeric_slots": profile.numeric_slots,
-            "string_slots": profile.string_slots,
-            "reference_slots": profile.reference_slots,
-        }
+        # Keep interpolation aligned with the generated profile schema. New
+        # structural slots should flow through without another hand-maintained
+        # field list in this loader.
+        member["cdm_profile"] = profile.model_dump()
 
         member.pop("concept_slot", None)
         member.pop("value_slot", None)

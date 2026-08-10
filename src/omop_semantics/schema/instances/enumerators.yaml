@@ -292,6 +292,22 @@ named_enumerators:
         label: inch
       - concept_id: 8617
         label: m2
+  - name: cancer_indicating_surgery_point_concepts
+    class_uri: OmopEnum
+    notes: >
+      Direct procedure concepts that can indicate cancer-directed surgery when
+      no useful OMOP ancestor captures the concept.
+    enum_members:
+      - concept_id: 4054047
+        label: lobectomy
+  - name: diagnostic_staging_procedure_point_concepts
+    class_uri: OmopEnum
+    notes: >
+      Direct diagnostic and staging procedure concepts that are not captured by
+      a useful OMOP ancestor.
+    enum_members:
+      - concept_id: 4120443
+        label: bone_marrow_sampling
 named_groups:
   - name: treatment_modifier_values
     class_uri: OmopGroup
@@ -319,6 +335,19 @@ named_groups:
         label: rt_brachytherapy
       - concept_id: 37163499
         label: rt_course
+  - name: radiotherapy
+    class_uri: OmopGroup
+    notes: >
+      Delivered radiotherapy procedure anchors. Radionuclide therapy is a
+      distinct modality and is not included. The radiotherapy course concept
+      describes a treatment-course record rather than a delivered procedure.
+    parent_concepts:
+      - concept_id: 1242725
+        label: rt_procedure
+      - concept_id: 4141448
+        label: rt_externalbeam
+      - concept_id: 40317890
+        label: rt_brachytherapy
   - name: cancer_indicating_surgery_parent_concepts
     class_uri: OmopGroup
     notes: >
@@ -347,14 +376,6 @@ named_groups:
         label: endocrine_system_excision
       - concept_id: 4238646
         label: lymph_node_excision
-  - name: cancer_indicating_surgery_point_concepts
-    class_uri: OmopGroup
-    notes: >
-      Direct procedure concepts that can indicate cancer-directed surgery when
-      no useful OMOP ancestor captures the concept.
-    parent_concepts:
-      - concept_id: 4054047
-        label: lobectomy
   - name: diagnostic_staging_procedure_parent_concepts
     class_uri: OmopGroup
     notes: >
@@ -363,14 +384,6 @@ named_groups:
     parent_concepts:
       - concept_id: 4228202
         label: excisional_biopsy
-  - name: diagnostic_staging_procedure_point_concepts
-    class_uri: OmopGroup
-    notes: >
-      Direct diagnostic and staging procedure concepts that are not captured by
-      a useful OMOP ancestor.
-    parent_concepts:
-      - concept_id: 4120443
-        label: bone_marrow_sampling
   - name: sact_drug_classification
     class_uri: OmopGroup
     notes: >

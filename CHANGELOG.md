@@ -1,3 +1,9 @@
+# Unreleased
+- added governed composite semantic units with role-specific parent, excluded-parent, and exact concept accessors
+- added the governed `radiotherapy`, `cancer_indicating_surgery`, and `diagnostic_staging_procedure` units
+- changed the surgery and diagnostic point concept definitions to exact enums; their former top-level group paths are not retained, so consumers should use the composed units' `exact_ids` and `exact_mapper()` accessors
+- deprecated ambiguous `.ids` and mapper aliases on group-backed runtime objects
+
 # 0.1.0
 - initial alpha release
 

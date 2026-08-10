@@ -18,31 +18,50 @@ The runtime is a four-level namespace:
 RuntimeValueSets (runtime)
   └── RuntimeValueSet (runtime.staging)
         └── RuntimeSemanticUnit (runtime.staging.t_stage_concepts)
-              ├── RuntimeEnum    — fixed concept list
-              └── RuntimeGroup   — anchor-concept-based group
+              ├── RuntimeEnum    — exact, fixed concept list
+              ├── RuntimeGroup   — descendant-expanding anchors
+              └── OmopConcept    — exact singleton
 ```
 
-Access works at any level. `runtime.staging.t3` and `runtime.staging.t_stage_concepts.t3` both return the same concept id — the lookup falls through from the value set to its units and their members.
+Access remains scoped to each level of the hierarchy. A value set exposes its
+semantic-unit names, and a semantic unit exposes the labels from its constituent
+groups, enums, and concepts. For example,
+`runtime.staging.t_stage_concepts.t3` returns the concept id, while
+`runtime.staging.t3` raises `AttributeError` because `t3` is not a semantic-unit
+name.
+
+A semantic unit can compose one group with exact enums or named concepts. This
+keeps expansion semantics explicit while publishing one governed concept set:
+
+```python
+surgery = runtime.cancer_procedures.cancer_indicating_surgery
+surgery.parent_ids           # anchors whose descendants are included
+surgery.exact_ids            # concepts matched exactly
+surgery.excluded_parent_ids  # anchors whose descendants are excluded
+```
 
 ### `RuntimeGroup` singleton shortcut
 
-A group with exactly one parent concept collapses to a plain `int` on attribute access. A group with multiple parents returns the `RuntimeGroup` object. Call `.is_singleton` to test this explicitly, or use `.ids` to always get a `set[int]` regardless.
+A group with exactly one parent concept collapses to a plain `int` on attribute access. A group with multiple parents returns the `RuntimeGroup` object. Call `.is_singleton` to test this explicitly, or retrieve the group through `unit.groups[name]` when role-specific access is required.
 
 ### Available methods
 
-All labelled-concept types (`RuntimeEnum`, `RuntimeGroup`) expose:
+All labelled-concept types expose label lookup and a sorted `.labels` list.
+Their set accessors differ intentionally:
 
-| Attribute / Method | Returns |
-|---|---|
-| `.<label>` | `int` concept_id |
-| `.ids` | `set[int]` of all concept ids |
-| `.labels` | sorted `list[str]` of labels |
-| `.mapper()` | `dict[str, int]` label → concept_id |
+| Runtime type | Attribute / Method | Returns |
+|---|---|---|
+| `RuntimeEnum` | `.ids`, `.mapper()` | complete exact members |
+| `RuntimeGroup` | `.parent_ids`, `.parent_mapper()` | descendant-expanding inclusion anchors |
+| `RuntimeGroup` | `.excluded_parent_ids`, `.excluded_parent_mapper()` | descendant-expanding exclusion anchors |
+| `RuntimeSemanticUnit` | `.exact_ids`, `.exact_mapper()` | enum and named-concept members matched exactly |
+| `RuntimeSemanticUnit` | `.parent_ids`, `.parent_mapper()` | descendant-expanding inclusion anchors from its governed group |
+| `RuntimeSemanticUnit` | `.excluded_parent_ids`, `.excluded_parent_mapper()` | descendant-expanding exclusion anchors from its governed group |
 
-`RuntimeGroup` can also define excluded parent concepts for rules shaped as one
-hierarchy closure minus another. Excluded labels are still addressable as
-attributes, while `.ids` and `.mapper()` remain the included anchors only. Use
-`.excluded_ids` or `.excluded_mapper()` for the excluded closure.
+`RuntimeGroup.ids`, `RuntimeGroup.mapper()`, `RuntimeGroup.excluded_ids`, and
+`RuntimeGroup.excluded_mapper()` are deprecated compatibility aliases. Group-backed
+`RuntimeSemanticUnit.ids` is also deprecated because a flat set cannot preserve
+parent-versus-exact expansion semantics. Enum-only semantic-unit `.ids` remains supported.
 
 `RuntimeSemanticUnit` additionally exposes `.enums`, `.groups`, and `.concepts` as dictionaries for direct access to the underlying objects.
 
@@ -58,7 +77,7 @@ The shipped value sets are defined in `instances/valuesets.yaml`. Current top-le
 | `treatment_modifiers` | Treatment intent, modality, and modifier values |
 | `condition_modifiers` | Condition modifier values, tumour grade, numeric modifiers, condition status |
 | `nlp` | Document type, encoding, and language |
-| `cancer_procedures` | Consult types, provider specialties, broad procedure types, cancer-indicating surgery anchors, diagnostic/staging procedure anchors, location |
+| `cancer_procedures` | Consult types, provider specialties, governed radiotherapy, cancer-indicating surgery, diagnostic/staging procedures, and location |
 | `sact` | SACT drug inclusion and exclusion anchors |
 | `measurements_numeric` | Body size units and measurements, lab values, smoking, PROMs, performance status |
 | `staging` | T, N, M, and group stage concepts plus stage edition |
@@ -91,6 +110,27 @@ runtime = compile_valuesets(value_set_objects)
 ```
 
 Substitute your own YAML file paths to load project-specific value sets or extend the shipped ones.
+
+Simple semantic-unit entries remain string references. To compose descendant
+anchors with exact members, use a named mapping with typed reference lists:
+
+```yaml
+valuesets:
+  - name: cancer_procedures
+    semantic_units:
+      - name: cancer_indicating_surgery
+        notes: Cancer-directed surgery with exact exceptions.
+        named_groups:
+          - cancer_indicating_surgery_parent_concepts
+        named_enumerators:
+          - cancer_indicating_surgery_point_concepts
+```
+
+A composite unit may contain at most one group. Its membership is the resolved
+group result union its exact enum and named-concept members. Typed references are
+constituents of the named composite; they do not create additional semantic-unit
+paths in that value set. Access the exact members above through
+`runtime.cancer_procedures.cancer_indicating_surgery.exact_ids`.
 
 ## API reference
 

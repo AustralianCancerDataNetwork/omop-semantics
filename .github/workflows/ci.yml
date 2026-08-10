@@ -1,28 +1,10 @@
 name: CI
-
 on:
-  push:
-    branches: [main]
   pull_request:
-
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      # Install from the lockfile so the generated-model drift check runs against the EXACT pinned
-      # linkml (gen-pydantic output is version-sensitive); --extra dev brings in pytest.
-      - name: Sync (locked)
-        run: uv sync --frozen --extra dev
-
-      # Fast, early signal: committed pydantic models must match `omop-semantics gen-models`.
-      - name: Generated models in sync with schema
-        run: uv run omop-semantics gen-models --check
-
-      - name: Run tests
-        run: uv run pytest -q
+  label-gate:
+    uses: AustralianCancerDataNetwork/cava-devops/.github/workflows/label-gate.yml@main
+  build-test:
+    uses: AustralianCancerDataNetwork/cava-devops/.github/workflows/build-test.yml@main
