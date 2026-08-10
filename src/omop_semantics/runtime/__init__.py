@@ -53,10 +53,8 @@ from .viz import (
     escape_html_text,
     escape_mermaid_label,
 )
-from typing import TYPE_CHECKING
-
-
 __all__ = [
+    "Html",
     "OmopSemanticResolver",
     "OmopTemplateRuntime",
     "OmopRegistryRuntime",

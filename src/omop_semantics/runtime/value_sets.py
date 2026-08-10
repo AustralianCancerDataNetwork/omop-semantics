@@ -26,20 +26,22 @@ This layer intentionally avoids mutability and database concerns and is intended
 as a pure read-only semantic access layer.
 """
 
+import warnings
 from abc import ABC
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Mapping, TypeVar
 
 from omop_semantics.schema.generated_models.omop_named_sets import (
-    OmopConcept,
-    OmopGroup,
-    OmopEnum,
-    OmopSemanticObject,
     CDMSemanticUnits,
     CDMValueSet,
     CDMValueSets,
+    OmopConcept,
+    OmopEnum,
+    OmopGroup,
+    OmopSemanticObject,
 )
-from .renderers import tr, table, h, Html
+from .renderers import Html, h, table, tr
+
 
 class _RuntimeLabelledConcepts(ABC):
     """
@@ -86,9 +88,12 @@ class RuntimeGroup(_RuntimeLabelledConcepts):
     """
     Runtime wrapper around an ``OmopGroup``.
 
-    Exposes the group's parent concepts as an attribute-accessible namespace,
-    mapping concept labels to OMOP concept IDs. This allows interactive access
-    such as:
+    Exposes descendant-expanding parent concepts and excluded parent concepts
+    as an attribute-accessible namespace. Use the role-specific accessors when
+    passing concepts to downstream vocabulary expansion. ``ids`` and
+    ``mapper()`` are deprecated parent-only compatibility aliases.
+
+    This allows interactive access such as:
 
         >>> runtime.staging.t_stage_concepts.t3
         1634376
@@ -114,18 +119,54 @@ class RuntimeGroup(_RuntimeLabelledConcepts):
         self._by_label = self._included_by_label | self._excluded_by_label
 
     @property
-    def ids(self) -> set[int]:
+    def parent_ids(self) -> set[int]:
         return set(self._included_by_label.values())
 
     @property
-    def excluded_ids(self) -> set[int]:
+    def excluded_parent_ids(self) -> set[int]:
         return set(self._excluded_by_label.values())
 
-    def mapper(self) -> dict[str, int]:
+    def parent_mapper(self) -> dict[str, int]:
         return dict(self._included_by_label)
 
-    def excluded_mapper(self) -> dict[str, int]:
+    def excluded_parent_mapper(self) -> dict[str, int]:
         return dict(self._excluded_by_label)
+
+    @property
+    def ids(self) -> set[int]:
+        warnings.warn(
+            "RuntimeGroup.ids is deprecated; use parent_ids for "
+            "descendant-expanding anchors.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.parent_ids
+
+    @property
+    def excluded_ids(self) -> set[int]:
+        warnings.warn(
+            "RuntimeGroup.excluded_ids is deprecated; use excluded_parent_ids.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.excluded_parent_ids
+
+    def mapper(self) -> dict[str, int]:
+        warnings.warn(
+            "RuntimeGroup.mapper() is deprecated; use parent_mapper().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.parent_mapper()
+
+    def excluded_mapper(self) -> dict[str, int]:
+        warnings.warn(
+            "RuntimeGroup.excluded_mapper() is deprecated; use "
+            "excluded_parent_mapper().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.excluded_parent_mapper()
 
     @property
     def is_singleton(self) -> bool:
@@ -150,11 +191,11 @@ class RuntimeGroup(_RuntimeLabelledConcepts):
 
     def _repr_html_(self) -> str:
         rows = [
-            tr([label, cid, "included"])
+            tr([label, cid, "Parent anchor"])
             for label, cid in sorted(self._included_by_label.items())
         ]
         rows.extend(
-            tr([label, cid, "excluded"])
+            tr([label, cid, "Excluded parent anchor"])
             for label, cid in sorted(self._excluded_by_label.items())
         )
         return Html(
@@ -177,8 +218,8 @@ class RuntimeEnum(_RuntimeLabelledConcepts):
     ----------
     labels : list[str]
         Sorted list of enum labels.
-    ids : list[int]
-        Sorted list of concept IDs in the enum.
+    ids : set[int]
+        Complete set of exact concept IDs in the enum.
 
     """
 
@@ -235,25 +276,110 @@ class RuntimeSemanticUnit:
 
     def __init__(self, unit: CDMSemanticUnits):
         self._unit = unit
-        self.enums = {e.name: RuntimeEnum(e) for e in (unit.named_enumerators or []) if e and e.name}
-        self.groups = {g.name: RuntimeGroup(g) for g in (unit.named_groups or []) if g and g.name}        
-        self.concepts = {c.name: c for c in (unit.named_concepts or []) if c and c.name}
+        self.enums = {
+            enum.name: RuntimeEnum(enum)
+            for enum in (unit.named_enumerators or [])
+            if enum and enum.name
+        }
+        self.groups = {
+            group.name: RuntimeGroup(group)
+            for group in (unit.named_groups or [])
+            if group and group.name
+        }
+        self.concepts = {
+            concept.name: concept
+            for concept in (unit.named_concepts or [])
+            if concept and concept.name
+        }
+        self._validate_flattened_labels()
+
+    def _validate_flattened_labels(self) -> None:
+        """Reject labels whose flattened attribute lookup would be ambiguous."""
+        owners: dict[str, str] = {}
+
+        for kind, items in (("enum", self.enums), ("group", self.groups)):
+            for item_name, item in items.items():
+                for label in item.labels:
+                    owner = f"{kind} '{item_name}'"
+                    if previous := owners.get(label):
+                        raise ValueError(
+                            f"Semantic unit '{self._unit.name}' exposes label '{label}' "
+                            f"from both {previous} and {owner}"
+                        )
+                    owners[label] = owner
+
+        for concept_name in self.concepts:
+            owner = f"concept '{concept_name}'"
+            if previous := owners.get(concept_name):
+                raise ValueError(
+                    f"Semantic unit '{self._unit.name}' exposes label "
+                    f"'{concept_name}' from both {previous} and {owner}"
+                )
+            owners[concept_name] = owner
+
+    def _single_group(self) -> RuntimeGroup | None:
+        if len(self.groups) > 1:
+            raise ValueError(
+                f"Semantic unit '{self._unit.name}' has multiple groups; "
+                "role-specific group composition requires at most one"
+            )
+        return next(iter(self.groups.values()), None)
+
+    @property
+    def parent_ids(self) -> set[int]:
+        """Return descendant-expanding anchors from the unit's governed group."""
+        group = self._single_group()
+        return group.parent_ids if group else set()
+
+    @property
+    def excluded_parent_ids(self) -> set[int]:
+        """Return excluded descendant-expanding anchors from the governed group."""
+        group = self._single_group()
+        return group.excluded_parent_ids if group else set()
+
+    @property
+    def exact_ids(self) -> set[int]:
+        """Return exact members declared by enums and named concepts."""
+        vals: set[int] = set()
+        for enum in self.enums.values():
+            vals |= enum.ids
+        for concept in self.concepts.values():
+            if concept.concept_id is not None:
+                vals.add(concept.concept_id)
+        return vals
+
+    def parent_mapper(self) -> dict[str, int]:
+        group = self._single_group()
+        return group.parent_mapper() if group else {}
+
+    def excluded_parent_mapper(self) -> dict[str, int]:
+        group = self._single_group()
+        return group.excluded_parent_mapper() if group else {}
+
+    def exact_mapper(self) -> dict[str, int]:
+        mapped: dict[str, int] = {}
+        for enum in self.enums.values():
+            mapped.update(enum.mapper())
+        for name, concept in self.concepts.items():
+            if concept.concept_id is not None:
+                mapped[concept.label or name] = concept.concept_id
+        return mapped
 
     @property
     def ids(self) -> set[int]:
-        vals: set[int] = set()
-
-        for enum in self.enums.values():
-            vals |= enum.ids
-
-        for group in self.groups.values():
-            vals |= group.ids
-
-        for concept in self.concepts.values():
-            if concept and concept.concept_id:
-                vals.add(concept.concept_id)
-
-        return vals
+        if self.groups:
+            warnings.warn(
+                "RuntimeSemanticUnit.ids is deprecated for group-backed units; "
+                "use parent_ids, exact_ids, and excluded_parent_ids.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        parent_ids = {
+            concept_id
+            for group in self.groups.values()
+            for concept_id in group.parent_ids
+        }
+        return parent_ids | self.exact_ids
 
     def __getattr__(self, name: str):
         if name in self.enums:
@@ -290,17 +416,20 @@ class RuntimeSemanticUnit:
     def _repr_html_(self) -> str:
         rows = []
         for name in sorted(self.enums):
-            rows.append(tr(["Enum", name, ", ".join(self.enums[name]._by_label.keys())]))
+            labels = ", ".join(self.enums[name]._by_label)
+            rows.append(tr(["Enum (exact)", name, labels]))
         for name, g in sorted(self.groups.items()):
             labels = list(g._included_by_label)
             labels.extend(f"not {label}" for label in g._excluded_by_label)
             if labels:
-                rows.append(tr(["Group", name, ", ".join(labels)]))
+                rows.append(tr(["Group (descendants)", name, ", ".join(labels)]))
         for name in sorted(self.concepts):
-            rows.append(tr(["Concept", name, ""]))
+            rows.append(tr(["Concept (exact)", name, ""]))
 
+        notes = getattr(self._unit, "notes", None)
         return Html(
             f"<h3>Semantic Unit: {h(self._unit.name)}</h3>"
+            + (f"<p>{h(notes)}</p>" if notes else "")
             + table(rows, header=["Type", "Name", "Members"])
         ).raw
     
@@ -487,16 +616,114 @@ def index_semantic_units(units: CDMSemanticUnits) -> dict[str, OmopSemanticObjec
 
     return index
 
+
+_COMPOSITE_REFERENCE_FIELDS = frozenset(
+    {"named_enumerators", "named_groups", "named_concepts"}
+)
+_ALLOWED_COMPOSITE_FIELDS = _COMPOSITE_REFERENCE_FIELDS.union(
+    {"name", "notes"}
+)
+SemanticObjectT = TypeVar("SemanticObjectT", OmopEnum, OmopGroup, OmopConcept)
+
+
+def _semantic_object(
+    reference: str,
+    semantic_index: dict[str, OmopSemanticObject],
+) -> OmopSemanticObject:
+    try:
+        return semantic_index[reference]
+    except KeyError:
+        raise KeyError(
+            f"Unknown semantic unit referenced in valuesets.yaml: {reference}"
+        ) from None
+
+
+def _unit_from_object(name: str, obj: OmopSemanticObject) -> CDMSemanticUnits:
+    if isinstance(obj, OmopEnum):
+        return CDMSemanticUnits(name=name, named_enumerators=[obj])
+    if isinstance(obj, OmopGroup):
+        return CDMSemanticUnits(name=name, named_groups=[obj])
+    if isinstance(obj, OmopConcept):
+        return CDMSemanticUnits(name=name, named_concepts=[obj])
+    raise TypeError(f"Unsupported semantic unit type: {type(obj)}")
+
+
+def _composite_unit(
+    member: dict,
+    semantic_index: dict[str, OmopSemanticObject],
+) -> CDMSemanticUnits:
+    unexpected = set(member) - _ALLOWED_COMPOSITE_FIELDS
+    if unexpected:
+        raise ValueError(
+            "Unsupported composite semantic-unit fields: "
+            f"{', '.join(sorted(unexpected))}"
+        )
+
+    name = member.get("name")
+    if not isinstance(name, str) or not name:
+        raise ValueError("Composite semantic units require a non-empty name")
+
+    notes = member.get("notes")
+    if notes is not None and not isinstance(notes, str):
+        raise TypeError(f"Composite semantic unit '{name}' notes must be a string")
+
+    def typed_references(
+        field: str,
+        expected_type: type[SemanticObjectT],
+    ) -> list[SemanticObjectT]:
+        references = member.get(field, [])
+        if not isinstance(references, list) or not all(
+            isinstance(reference, str) for reference in references
+        ):
+            raise TypeError(
+                f"Composite semantic unit '{name}' field '{field}' "
+                "must be a list of string references"
+            )
+        resolved: list[SemanticObjectT] = []
+        for reference in references:
+            obj = _semantic_object(reference, semantic_index)
+            if not isinstance(obj, expected_type):
+                raise TypeError(
+                    f"Composite semantic unit '{name}' references '{reference}' "
+                    f"under '{field}', but it is {type(obj).__name__}"
+                )
+            resolved.append(obj)
+        return resolved
+
+    named_enums = typed_references("named_enumerators", OmopEnum)
+    named_groups = typed_references("named_groups", OmopGroup)
+    named_concepts = typed_references("named_concepts", OmopConcept)
+
+    if len(named_groups) > 1:
+        raise ValueError(
+            f"Composite semantic unit '{name}' may reference at most one group"
+        )
+
+    if not (named_enums or named_groups or named_concepts):
+        raise ValueError(
+            f"Composite semantic unit '{name}' must reference at least one object"
+        )
+
+    return CDMSemanticUnits(
+        name=name,
+        notes=notes,
+        named_enumerators=named_enums,
+        named_groups=named_groups,
+        named_concepts=named_concepts,
+    )
+
+
 def interpolate_valuesets(
     raw: dict,
     semantic_index: dict[str, OmopSemanticObject],
 ) -> CDMValueSets:
     """
-    Interpolate raw value set definitions by resolving string references.
+    Interpolate value set definitions by resolving simple or composite references.
 
-    This replaces string references in ``valuesets.yaml`` with concrete
-    ``CDMSemanticUnits`` instances wrapping the corresponding OMOP semantic
-    objects.
+    A string member keeps the compact one-object-per-unit form. A mapping can
+    compose one named semantic unit from references in ``named_groups``,
+    ``named_enumerators``, and ``named_concepts``. Composite units intentionally
+    permit at most one group so parent exclusions retain one unambiguous scope.
 
     Parameters
     ----------
@@ -523,33 +750,16 @@ def interpolate_valuesets(
     for vs in raw["valuesets"]:
         resolved_members: list[CDMSemanticUnits] = []
 
-        for name in vs["semantic_units"]:
-            if name not in semantic_index:
-                raise KeyError(f"Unknown semantic unit referenced in valuesets.yaml: {name}")
-
-            obj = semantic_index[name]
-
-            named_enums = []
-            named_groups = []
-            named_concepts = []
-
-            if isinstance(obj, OmopEnum):
-                named_enums = [obj]
-            elif isinstance(obj, OmopGroup):
-                named_groups = [obj]
-            elif isinstance(obj, OmopConcept):
-                named_concepts = [obj]
+        for member in vs["semantic_units"]:
+            if isinstance(member, str):
+                obj = _semantic_object(member, semantic_index)
+                resolved_members.append(_unit_from_object(member, obj))
+            elif isinstance(member, dict):
+                resolved_members.append(_composite_unit(member, semantic_index))
             else:
-                raise TypeError(f"Unsupported semantic unit type: {type(obj)}")
-
-            resolved_members.append(
-                CDMSemanticUnits(
-                    name=name,
-                    named_enumerators=named_enums,
-                    named_groups=named_groups,
-                    named_concepts=named_concepts,
+                raise TypeError(
+                    "semantic_units entries must be string references or mappings"
                 )
-            )
 
         valuesets.append(
             CDMValueSet(

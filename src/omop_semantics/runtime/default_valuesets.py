@@ -1,8 +1,12 @@
-from pathlib import Path
 from linkml_runtime.loaders import yaml_loader
-from omop_semantics.schema.generated_models.omop_named_sets import CDMValueSets, OmopEnum, CDMSemanticUnits
-from omop_semantics.runtime.value_sets import compile_valuesets, index_semantic_units, interpolate_valuesets, RuntimeValueSets
-from omop_semantics import SCHEMA_DIR, INSTANCE_DIR
+
+from omop_semantics import INSTANCE_DIR, SCHEMA_DIR
+from omop_semantics.runtime.value_sets import (
+    compile_valuesets,
+    index_semantic_units,
+    interpolate_valuesets,
+)
+from omop_semantics.schema.generated_models.omop_named_sets import CDMSemanticUnits
 
 schema_path = SCHEMA_DIR / 'core' / 'omop_named_sets.yaml'
 enumerator_instances = INSTANCE_DIR / "enumerators.yaml"
@@ -17,4 +21,3 @@ idx = index_semantic_units(enumerators) # type: ignore
 value_sets = yaml_loader.load_as_dict(str(INSTANCE_DIR / 'valuesets.yaml'))
 value_set_objects = interpolate_valuesets(value_sets, idx) # type: ignore
 runtime = compile_valuesets(value_set_objects)
-

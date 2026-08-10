@@ -377,7 +377,10 @@ class OmopRegistryRuntime:
         """
         if self._compiled_by_name is None:
             self.compile_index()
-        return self._compiled_by_name[name]
+        compiled_by_name = self._compiled_by_name
+        if compiled_by_name is None:
+            raise RuntimeError("Template compilation did not produce a name index")
+        return compiled_by_name[name]
     
     def get_runtime(self, name: str) -> RuntimeTemplate:
         """
@@ -420,7 +423,10 @@ class OmopRegistryRuntime:
         """
         if self._compiled_by_role is None:
             self.compile_index()
-        return self._compiled_by_role.get(role, [])
+        compiled_by_role = self._compiled_by_role
+        if compiled_by_role is None:
+            raise RuntimeError("Template compilation did not produce a role index")
+        return compiled_by_role.get(role, [])
 
     def compile_all(self, role: str | None = None) -> list[CompiledTemplate]:
         """
@@ -436,11 +442,15 @@ class OmopRegistryRuntime:
         list[CompiledTemplate]
             List of compiled templates in the registry.
         """
-        if self._compiled_by_name is None:
+        if self._compiled_by_name is None or self._compiled_by_role is None:
             self.compile_index()
+        compiled_by_name = self._compiled_by_name
+        compiled_by_role = self._compiled_by_role
+        if compiled_by_name is None or compiled_by_role is None:
+            raise RuntimeError("Template compilation did not produce complete indexes")
         if role is None:
-            return list(self._compiled_by_name.values())
-        return self._compiled_by_role.get(role, [])
+            return list(compiled_by_name.values())
+        return compiled_by_role.get(role, [])
     
     def by_label(self, label: str) -> RuntimeTemplate:
         """

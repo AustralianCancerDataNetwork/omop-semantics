@@ -42,7 +42,10 @@ named_enumerators:
 
 ### `valuesets.yaml`
 
-Groups named enumerators into top-level runtime namespaces. Each value set entry has a name and a `semantic_units` list of enumerator names (string references resolved at load time).
+Groups named semantic objects into top-level runtime namespaces. A
+`semantic_units` entry can be a simple string reference or a named composite
+mapping. Composite units combine at most one descendant-expanding group with
+exact enums or named concepts.
 
 ```yaml
 valuesets:
@@ -55,9 +58,20 @@ valuesets:
       - t_stage_concepts
       - n_stage_concepts
       - group_stage_concepts
+  - name: cancer_procedures
+    semantic_units:
+      - name: cancer_indicating_surgery
+        notes: Cancer-directed surgery with exact members.
+        named_groups:
+          - cancer_indicating_surgery_parent_concepts
+        named_enumerators:
+          - cancer_indicating_surgery_point_concepts
 ```
 
-These names become the top-level attributes on the `runtime` object: `runtime.genomic`, `runtime.staging`, etc.
+Value-set names become top-level attributes such as `runtime.genomic`. Semantic
+unit names become the next level, such as
+`runtime.cancer_procedures.cancer_indicating_surgery`. Typed references inside a
+composite are constituents, not additional semantic-unit paths in that value set.
 
 ### `profiles.yaml`
 

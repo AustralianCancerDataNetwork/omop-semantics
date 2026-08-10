@@ -33,10 +33,26 @@ valuesets:
       - cancer_consult_types
       - encounter_provider_specialty
       - cancer_procedure_types
+      - radiotherapy
       - cancer_indicating_surgery_parent_concepts
-      - cancer_indicating_surgery_point_concepts
       - diagnostic_staging_procedure_parent_concepts
-      - diagnostic_staging_procedure_point_concepts
+      - name: cancer_indicating_surgery
+        notes: >
+          Cancer-directed surgery. Parent anchors expand through descendants;
+          exact members are matched directly where no useful ancestor exists.
+        named_groups:
+          - cancer_indicating_surgery_parent_concepts
+        named_enumerators:
+          - cancer_indicating_surgery_point_concepts
+      - name: diagnostic_staging_procedure
+        notes: >
+          Diagnostic and staging procedures that establish disease extent.
+          Parent anchors expand through descendants and exact members are
+          matched directly.
+        named_groups:
+          - diagnostic_staging_procedure_parent_concepts
+        named_enumerators:
+          - diagnostic_staging_procedure_point_concepts
       - procedures_by_location
   - name: sact
     semantic_units:
