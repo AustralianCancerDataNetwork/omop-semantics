@@ -75,7 +75,7 @@ The shipped value sets are defined in `instances/valuesets.yaml`. Current top-le
 | `modifiers` | Modifier fields and tables |
 | `types` | Episode types and source types |
 | `treatment_modifiers` | Treatment intent, modality, and modifier values |
-| `condition_modifiers` | Condition modifier values, tumour grade, numeric modifiers, condition status |
+| `condition_modifiers` | Condition modifier values, a narrow metastatic-disease descendant group, tumour grade, numeric modifiers, and condition status |
 | `nlp` | Document type, encoding, and language |
 | `cancer_procedures` | Consult types, provider specialties, governed radiotherapy, cancer-indicating surgery, diagnostic/staging procedures, and location |
 | `sact` | SACT drug inclusion and exclusion anchors |

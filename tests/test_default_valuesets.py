@@ -38,6 +38,15 @@ def test_default_valuesets_expose_id_sets_for_downstream_use() -> None:
     assert "episode_of_care" in episode_types.labels
 
 
+def test_metastatic_disease_has_a_narrow_descendant_expanding_unit() -> None:
+    metastatic = runtime.condition_modifiers.metastatic_disease_concepts
+    broad = runtime.condition_modifiers.condition_modifier_values
+
+    assert metastatic.parent_ids == {broad.metastatic_disease}
+    assert metastatic.excluded_parent_ids == set()
+    assert metastatic.exact_ids == set()
+
+
 def test_cancer_procedure_groups_expose_governed_modality_anchors() -> None:
     procedure_types = runtime.cancer_procedures.cancer_procedure_types
     radiotherapy = runtime.cancer_procedures.radiotherapy

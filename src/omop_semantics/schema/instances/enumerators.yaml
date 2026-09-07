@@ -478,3 +478,13 @@ named_groups:
         label: laterality
       - concept_id: 36769180
         label: metastatic_disease
+  - name: metastatic_disease_concepts
+    class_uri: OmopGroup
+    notes: >
+      Descendant-expanding condition-modifier concepts representing metastatic
+      disease. This narrow group intentionally repeats the governed anchor from
+      condition_modifier_values so consumers can select metastatic-disease
+      modifiers without also selecting stage or laterality.
+    parent_concepts:
+      - concept_id: 36769180
+        label: metastatic_disease

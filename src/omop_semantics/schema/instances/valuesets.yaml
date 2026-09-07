@@ -20,6 +20,7 @@ valuesets:
   - name: condition_modifiers
     semantic_units: 
       - condition_modifier_values
+      - metastatic_disease_concepts
       - tumor_grade
       - numeric_condition_modifiers
       - condition_status
