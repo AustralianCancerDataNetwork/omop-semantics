@@ -1,9 +1,3 @@
-# Unreleased
-- added governed composite semantic units with role-specific parent, excluded-parent, and exact concept accessors
-- added the governed `radiotherapy`, `cancer_indicating_surgery`, and `diagnostic_staging_procedure` units
-- changed the surgery and diagnostic point concept definitions to exact enums; their former top-level group paths are not retained, so consumers should use the composed units' `exact_ids` and `exact_mapper()` accessors
-- deprecated ambiguous `.ids` and mapper aliases on group-backed runtime objects
-
 # 0.1.0
 - initial alpha release
 
@@ -78,3 +72,12 @@
 - brachy therapy
 - excluded_parent_concepts support on OmopGroup
 - new groups: cancer_indicating_surgery_parent_concepts, cancer_indicating_surgery_point_concepts
+
+# 0.6.0
+- added governed composite semantic units with role-specific parent, excluded-parent, and exact concept accessors
+- added the governed `radiotherapy`, `cancer_indicating_surgery`, and `diagnostic_staging_procedure` units
+- changed the surgery and diagnostic point concept definitions to exact enums; their former top-level group paths are not retained, so consumers should use the composed units' `exact_ids` and `exact_mapper()` accessors
+- deprecated ambiguous `.ids` and mapper aliases on group-backed runtime objects
+
+# 0.6.1
+- added a narrow descendant-expanding `condition_modifiers.metastatic_disease_concepts` unit while retaining the broader `condition_modifier_values` unit
