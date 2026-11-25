@@ -42,6 +42,7 @@ EMPTY_LIST_FOR_MULTIVALUED = False
 GEN_TARGETS: dict[str, str] = {
     "omop_semantic_registry": "src/omop_semantics/schema/configuration/registry/omop_semantic_registry.yaml",
     "omop_named_sets": "src/omop_semantics/schema/configuration/core/omop_named_sets.yaml",
+    "omop_unknowns": "src/omop_semantics/schema/configuration/core/omop_unknowns.yaml",
 }
 
 

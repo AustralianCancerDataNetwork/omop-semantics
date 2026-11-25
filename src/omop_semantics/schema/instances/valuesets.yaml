@@ -80,6 +80,3 @@ valuesets:
     semantic_units:
       - demography_concepts
       - sact_concepts
-  - name: unknowns
-    semantic_units:
-      - unknowns

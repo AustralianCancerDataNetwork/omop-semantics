@@ -1,73 +1,60 @@
-"""
-Canonical fallback concepts for OMOP CDM workflows.
+"""Behavioural fallback concepts loaded from the unknowns registry.
 
-This module defines the standard set of "unknown" and default concepts
-used when a mapping cannot be completed confidently. Each entry carries
-a reason code describing the failure mode, which is distinct from the
-concept ID alone and intentionally not folded into the value-set runtime.
+The catalogue lives in ``schema/instances/unknowns.yaml`` and is validated
+against the generated ``UnknownCatalogue`` model. It stays separate from the
+value-set runtime because fallback reasons describe application behavior, not
+membership in an OMOP value set.
 
-The ``reason`` field is a behavioral policy annotation, not a vocabulary
-property — it describes what the caller should communicate about why this
-fallback was chosen (e.g. the source was absent vs. the mapping failed).
+Import from ``omop_semantics.unknowns``::
 
-This is a stable public surface. External consumers should import from
-``omop_semantics.unknowns``:
+    from omop_semantics.unknowns import UNKNOWN
 
-    >>> from omop_semantics.unknowns import UNKNOWN
-    >>> UNKNOWN["generic"].concept_id
-    4129922
-    >>> UNKNOWN["condition"].reason
-    'mapping_failed'
+    UNKNOWN["generic"].concept_id
+    UNKNOWN["generic"].reason
 """
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from types import MappingProxyType
-from typing import Literal
 
+from ruamel.yaml import YAML
 
-UnknownReason = Literal[
-    "missing",
-    "not_recorded",
-    "not_applicable",
-    "ambiguous",
-    "mapping_failed",
-    "default_value",
-]
+from omop_semantics.schema.generated_models.omop_unknowns import (
+    UnknownCatalogue,
+    UnknownReason,
+)
+from omop_semantics.utils.paths import INSTANCE_DIR
 
 
 @dataclass(frozen=True)
 class UnknownValue:
-    """
-    A single canonical fallback concept with an attached reason code.
-
-    Attributes
-    ----------
-    concept_id
-        OMOP concept_id of the fallback concept.
-    label
-        Human-readable label for the concept.
-    reason
-        Why this fallback is used. Describes the failure mode, not the
-        concept itself.
-    """
+    """A fallback concept and the reason it is selected."""
 
     concept_id: int
     label: str
-    reason: UnknownReason | None = None
+    reason: UnknownReason
 
 
-UNKNOWN: Mapping[str, UnknownValue] = MappingProxyType({
-    "generic":             UnknownValue(4129922,  "Unknown",                                        "missing"),
-    "gender":              UnknownValue(4214687,  "Gender Unknown",                                 "missing"),
-    "condition":           UnknownValue(44790729, "Unknown problem",                                "mapping_failed"),
-    "cancer":              UnknownValue(36402660, "Unknown histology of unknown primary site",      "mapping_failed"),
-    "grade":               UnknownValue(4264626,  "Grade not determined",                           "not_recorded"),
-    "stage":               UnknownValue(36768646, "Cancer Modifier Origin Grade X",                 "not_recorded"),
-    "cob":                 UnknownValue(40482029, "Country of birth unknown",                       "missing"),
-    "stage_edition":       UnknownValue(1634449,  "8th",                                            "default_value"),
-    "therapeutic_regimen": UnknownValue(4207655,  "prescription of therapeutic regimen",            "mapping_failed"),
-    "drug_trial":          UnknownValue(4207655,  "clinical drug trial",                            "ambiguous"),
-})
+def _load_unknowns(path: Path = INSTANCE_DIR / "unknowns.yaml") -> Mapping[str, UnknownValue]:
+    """Validate a catalogue file and return its immutable key-to-value mapping."""
+    with path.open(encoding="utf-8") as stream:
+        catalogue = UnknownCatalogue.model_validate(YAML(typ="safe").load(stream))
+
+    values: dict[str, UnknownValue] = {}
+    for entry in catalogue.unknowns:
+        label = entry.label
+        if label in values:
+            raise ValueError(f"Duplicate unknown label: {label!r}")
+        values[label] = UnknownValue(
+            concept_id=entry.concept_id,
+            label=label,
+            reason=UnknownReason(entry.reason),
+        )
+
+    return MappingProxyType(values)
+
+
+UNKNOWN: Mapping[str, UnknownValue] = _load_unknowns()
 
 __all__ = ["UnknownReason", "UnknownValue", "UNKNOWN"]
