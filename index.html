@@ -811,8 +811,9 @@
 </code></pre></div></p>
 <p><strong>Fallback concepts</strong> — canonical unknown/default concepts with reason codes:
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">omop_semantics.unknowns</span><span class="w"> </span><span class="kn">import</span> <span class="n">UNKNOWN</span>
-<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">concept_id</span>   <span class="c1"># → 44790729</span>
-<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reason</span>       <span class="c1"># → &quot;mapping_failed&quot;</span>
+<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;generic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">concept_id</span>     <span class="c1"># → 4129922</span>
+<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;generic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reason</span>         <span class="c1"># → &quot;missing&quot;</span>
+<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;cob&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">concept_id</span>         <span class="c1"># → 40482029</span>
 </code></pre></div></p>
 <h2 id="portability">Portability<a class="headerlink" href="#portability" title="Permanent link">&para;</a></h2>
 <p>omop-semantics requires no live vocabulary database and performs no descendant expansion at load time. Runtime artefacts are anchor-based and structural. Descendant expansion belongs in a downstream database-aware layer.</p>

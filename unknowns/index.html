@@ -448,10 +448,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#reason-codes" class="md-nav__link">
+  <a href="#catalogue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reason codes
+        Catalogue
       
     </span>
   </a>
@@ -459,32 +459,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#shipped-entries" class="md-nav__link">
+  <a href="#reasons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shipped entries
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage pattern
+        Reasons
       
     </span>
   </a>
@@ -607,10 +585,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#reason-codes" class="md-nav__link">
+  <a href="#catalogue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reason codes
+        Catalogue
       
     </span>
   </a>
@@ -618,32 +596,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#shipped-entries" class="md-nav__link">
+  <a href="#reasons" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shipped entries
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage pattern
+        Reasons
       
     </span>
   </a>
@@ -679,138 +635,61 @@
 
 
 <h1 id="fallback-concepts">Fallback Concepts<a class="headerlink" href="#fallback-concepts" title="Permanent link">&para;</a></h1>
-<p><code>omop_semantics.unknowns</code> provides a catalog of canonical fallback concepts for use when a mapping cannot be completed. Each entry pairs an OMOP concept_id with a <code>reason</code> code that describes the failure mode.</p>
+<p><code>omop_semantics.unknowns</code> loads a small catalogue of behavioural fallbacks. The identifiers and reasons live in <code>schema/instances/unknowns.yaml</code> and are validated against <code>schema/configuration/core/omop_unknowns.yaml</code>.</p>
+<p>These entries are deliberately separate from the value-set runtime: <code>reason</code> records why a fallback was selected, not membership in an OMOP value set.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">omop_semantics.unknowns</span><span class="w"> </span><span class="kn">import</span> <span class="n">UNKNOWN</span>
 
-<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;generic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">concept_id</span>   <span class="c1"># → 4129922</span>
-<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;generic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">label</span>        <span class="c1"># → &quot;Unknown&quot;</span>
-<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;generic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reason</span>       <span class="c1"># → &quot;missing&quot;</span>
+<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;generic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">concept_id</span>  <span class="c1"># → 4129922</span>
+<span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;cob&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reason</span>          <span class="c1"># → &quot;missing&quot;</span>
 </code></pre></div>
-<p><code>UNKNOWN</code> is read-only. Attempting to add or replace entries raises <code>TypeError</code>.</p>
-<h2 id="reason-codes">Reason codes<a class="headerlink" href="#reason-codes" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Code</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>"missing"</code></td>
-<td>The source value was absent or null</td>
-</tr>
-<tr>
-<td><code>"not_recorded"</code></td>
-<td>The value exists but was not captured</td>
-</tr>
-<tr>
-<td><code>"not_applicable"</code></td>
-<td>The concept does not apply in this context</td>
-</tr>
-<tr>
-<td><code>"ambiguous"</code></td>
-<td>The source could not be resolved to a single concept</td>
-</tr>
-<tr>
-<td><code>"mapping_failed"</code></td>
-<td>A value was present but could not be mapped</td>
-</tr>
-<tr>
-<td><code>"default_value"</code></td>
-<td>An explicit default was applied in the absence of data</td>
-</tr>
-</tbody>
-</table>
-<h2 id="shipped-entries">Shipped entries<a class="headerlink" href="#shipped-entries" title="Permanent link">&para;</a></h2>
+<h2 id="catalogue">Catalogue<a class="headerlink" href="#catalogue" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Key</th>
-<th>Concept ID</th>
-<th>Label</th>
+<th style="text-align: right;">Concept ID</th>
 <th>Reason</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>generic</code></td>
-<td>4129922</td>
-<td>Unknown</td>
+<td style="text-align: right;">4129922</td>
 <td><code>missing</code></td>
-</tr>
-<tr>
-<td><code>gender</code></td>
-<td>4214687</td>
-<td>Gender Unknown</td>
-<td><code>missing</code></td>
-</tr>
-<tr>
-<td><code>condition</code></td>
-<td>44790729</td>
-<td>Unknown problem</td>
-<td><code>mapping_failed</code></td>
-</tr>
-<tr>
-<td><code>cancer</code></td>
-<td>36402660</td>
-<td>Unknown histology of unknown primary site</td>
-<td><code>mapping_failed</code></td>
-</tr>
-<tr>
-<td><code>grade</code></td>
-<td>4264626</td>
-<td>Grade not determined</td>
-<td><code>not_recorded</code></td>
-</tr>
-<tr>
-<td><code>stage</code></td>
-<td>36768646</td>
-<td>Cancer Modifier Origin Grade X</td>
-<td><code>not_recorded</code></td>
 </tr>
 <tr>
 <td><code>cob</code></td>
-<td>40482029</td>
-<td>Country of birth unknown</td>
+<td style="text-align: right;">40482029</td>
 <td><code>missing</code></td>
 </tr>
 <tr>
-<td><code>stage_edition</code></td>
-<td>1634449</td>
-<td>8th</td>
-<td><code>default_value</code></td>
-</tr>
-<tr>
 <td><code>therapeutic_regimen</code></td>
-<td>4207655</td>
-<td>prescription of therapeutic regimen</td>
+<td style="text-align: right;">4207655</td>
 <td><code>mapping_failed</code></td>
-</tr>
-<tr>
-<td><code>drug_trial</code></td>
-<td>4207655</td>
-<td>clinical drug trial</td>
-<td><code>ambiguous</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">omop_semantics.unknowns</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnknownValue</span><span class="p">,</span> <span class="n">UnknownReason</span>
-</code></pre></div>
-<p><code>UnknownValue</code> is a frozen dataclass with <code>concept_id: int</code>, <code>label: str</code>, and <code>reason: UnknownReason | None</code>.</p>
-<p><code>UnknownReason</code> is a <code>Literal</code> type alias over the six reason code strings listed above. Use it for type-safe reason-code handling in downstream code.</p>
-<h2 id="usage-pattern">Usage pattern<a class="headerlink" href="#usage-pattern" title="Permanent link">&para;</a></h2>
-<p>The <code>reason</code> field is intended to drive downstream behavior and audit trails, not just to label the concept. It distinguishes cases that look the same in the CDM but have different causes:</p>
-<div class="highlight"><pre><span></span><code><span class="n">unknown</span> <span class="o">=</span> <span class="n">UNKNOWN</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">]</span>
-
-<span class="k">if</span> <span class="n">unknown</span><span class="o">.</span><span class="n">reason</span> <span class="o">==</span> <span class="s2">&quot;missing&quot;</span><span class="p">:</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Source value was absent&quot;</span><span class="p">)</span>
-<span class="k">elif</span> <span class="n">unknown</span><span class="o">.</span><span class="n">reason</span> <span class="o">==</span> <span class="s2">&quot;mapping_failed&quot;</span><span class="p">:</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Mapping attempt failed for present value&quot;</span><span class="p">)</span>
-
-<span class="n">row</span><span class="p">[</span><span class="s2">&quot;condition_concept_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unknown</span><span class="o">.</span><span class="n">concept_id</span>
-</code></pre></div>
+<p><code>UNKNOWN</code> is read-only. Each <code>UnknownValue</code> is a frozen dataclass with <code>concept_id</code>, <code>label</code> (the key), and a required <code>reason</code>.</p>
+<h2 id="reasons">Reasons<a class="headerlink" href="#reasons" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Reason</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>missing</code></td>
+<td>The source value was absent.</td>
+</tr>
+<tr>
+<td><code>mapping_failed</code></td>
+<td>A source value was present but could not be mapped.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>UnknownReason</code> enum is generated from the catalogue schema and re-exported from <code>omop_semantics.unknowns</code>.</p>
 
 
 
