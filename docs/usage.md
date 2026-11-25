@@ -193,7 +193,7 @@ Use `omop_semantics.unknowns` when a pipeline needs a canonical fallback concept
 from omop_semantics.unknowns import UNKNOWN
 
 UNKNOWN["generic"].concept_id   # → 4129922
-UNKNOWN["condition"].reason     # → "mapping_failed"
+UNKNOWN["cob"].reason           # → "missing"
 ```
 
 `UNKNOWN` is read-only. See [Fallback Concepts](unknowns.md) for the full catalog.

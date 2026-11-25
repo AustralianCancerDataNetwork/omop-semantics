@@ -70,8 +70,9 @@ tpl = engine.registry_runtime.get_runtime("Country of birth")
 **Fallback concepts** — canonical unknown/default concepts with reason codes:
 ```python
 from omop_semantics.unknowns import UNKNOWN
-UNKNOWN["condition"].concept_id   # → 44790729
-UNKNOWN["condition"].reason       # → "mapping_failed"
+UNKNOWN["generic"].concept_id     # → 4129922
+UNKNOWN["generic"].reason         # → "missing"
+UNKNOWN["cob"].concept_id         # → 40482029
 ```
 
 ## Portability

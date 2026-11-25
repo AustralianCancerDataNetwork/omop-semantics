@@ -83,7 +83,6 @@ The shipped value sets are defined in `instances/valuesets.yaml`. Current top-le
 | `staging` | T, N, M, and group stage concepts plus stage edition |
 | `visits` | Visit modalities |
 | `observations` | Demography and SACT concepts |
-| `unknowns` | Canonical unknown/fallback concepts |
 
 ## Loading your own value sets
 

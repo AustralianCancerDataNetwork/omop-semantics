@@ -1,13 +1,55 @@
-id: https://example.org/omop_unknowns
+id: https://example.org/omop_semantics/unknowns
 name: omop_unknowns
-title: OMOP Unknown and Default Concepts
+title: OMOP Behavioural Fallback Concepts
 description: >
-  Canonical registry of OMOP concept identifiers representing
-  unknown, missing, unspecified, or default values used across
-  oncology data processing and analytics.
+  Behavioural fallbacks, deliberately kept out of the value-set runtime.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  omop: https://athena.ohdsi.org/search-terms/terms/
+
+default_prefix: omop
+default_range: string
+
 imports:
-  - omop_semantic_core.yaml
+  - linkml:types
+  - omop_base
 
 classes:
+  UnknownCatalogue:
+    tree_root: true
+    slots:
+      - unknowns
 
+  UnknownConcept:
+    is_a: Concept
+    slots:
+      - label
+      - concept_id
+      - reason
+    slot_usage:
+      label:
+        identifier: true
+        required: true
+      concept_id:
+        required: true
 
+slots:
+  unknowns:
+    range: UnknownConcept
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+    required: true
+
+  reason:
+    range: UnknownReason
+    required: true
+
+enums:
+  UnknownReason:
+    permissible_values:
+      missing:
+        description: The source value was absent.
+      mapping_failed:
+        description: A source value was present but could not be mapped.

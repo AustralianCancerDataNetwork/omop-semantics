@@ -5,7 +5,7 @@
 ```
 src/omop_semantics/
 ├── __init__.py              # Package root: UNKNOWN, path helpers
-├── unknowns.py              # Fallback concept catalog
+├── unknowns.py              # Loader for the behavioural fallback catalogue
 ├── base.py                  # ConceptEnum base class
 ├── utils/
 │   └── paths.py             # BASE_DIR, SCHEMA_DIR, INSTANCE_DIR
@@ -15,14 +15,17 @@ src/omop_semantics/
 │   ├── value_sets.py        # RuntimeValueSets hierarchy and compiler
 │   ├── resolver.py          # OmopSemanticEngine, OmopRegistryRuntime, resolver
 │   ├── instance_loader.py   # YAML loading and profile interpolation helpers
-│   ├── renderers.py         # HTML rendering helpers for notebooks
-│   └── unknown_handlers.py  # Re-export shim (import from unknowns instead)
+│   └── renderers.py         # HTML rendering helpers for notebooks
 └── schema/
     ├── codegen.py           # PydanticGenerator wrapper and CLI
     ├── dump.py              # YAML dump utility
-    ├── configuration/       # LinkML schemas
-    ├── instances/           # Canonical YAML instance files
-    └── generated_models/    # Committed generated Pydantic models
+    ├── configuration/
+    │   └── core/omop_unknowns.yaml # Fallback catalogue schema
+    ├── instances/
+    │   └── unknowns.yaml     # Behavioural fallback data
+    └── generated_models/
+        ├── omop_unknowns.py  # Generated catalogue model
+        └── ...               # Other committed Pydantic models
 ```
 
 ## Public surfaces

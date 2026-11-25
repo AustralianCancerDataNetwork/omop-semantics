@@ -1,0 +1,10 @@
+unknowns:
+  - label: generic
+    concept_id: 4129922
+    reason: missing
+  - label: cob
+    concept_id: 40482029
+    reason: missing
+  - label: therapeutic_regimen
+    concept_id: 4207655
+    reason: mapping_failed
