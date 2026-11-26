@@ -23,6 +23,23 @@ Singleton groups collapse to a plain int automatically; multi-member groups retu
 
 This surface requires no database and no vocabulary graph. It is the right choice when you want consistent named imports for application logic, validation rules, or generated documentation.
 
+### Event-field links
+
+`schema/instances/enumerators.yaml` defines the CDM 5.4.2 field concepts exposed
+through `runtime.modifiers.modifier_fields`. Use `field_concept_id()` to look up
+the concept by target table. The link mechanism supplies the columns on the
+linking table.
+
+```python
+from omop_semantics.links import LINK_MECHANISMS, field_concept_id
+
+link = LINK_MECHANISMS["measurement"]
+link_fields = {
+    link.event_id_column: condition_occurrence_id,
+    link.field_concept_column: field_concept_id("condition_occurrence"),
+}
+```
+
 ## 2. Templates, profiles, and profile groups
 
 Use `OmopSemanticEngine` when you need compiled semantic templates, CDM profiles, or profile groups.
@@ -38,7 +55,6 @@ engine = OmopSemanticEngine.from_yaml_paths(
     profile_paths=[
         INSTANCE_DIR / "profile_groups.yaml",
         SCHEMA_DIR / "profiles" / "omop_staging.yaml",
-        SCHEMA_DIR / "profiles" / "omop_modifiers.yaml",
         SCHEMA_DIR / "profiles" / "omop_episodes.yaml",
     ],
 )

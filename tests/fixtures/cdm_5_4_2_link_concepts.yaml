@@ -1,0 +1,9 @@
+modifier_fields:
+  condition_occurrence_id: 1147127
+  drug_exposure_id: 1147094
+  procedure_occurrence_id: 1147082
+  episode_id: 798885
+  measurement_id: 1147138
+  observation_id: 1147165
+  device_exposure_id: 1147115
+episode_table: 756347

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from omop_semantics import INSTANCE_DIR, SCHEMA_DIR
 from omop_semantics.runtime import OmopSemanticEngine
+from omop_semantics.runtime.default_valuesets import runtime
 
 
 def test_semantic_engine_loads_builtin_templates_and_profiles() -> None:
@@ -12,7 +13,6 @@ def test_semantic_engine_loads_builtin_templates_and_profiles() -> None:
         profile_paths=[
             INSTANCE_DIR / "profile_groups.yaml",
             SCHEMA_DIR / "profiles" / "omop_staging.yaml",
-            SCHEMA_DIR / "profiles" / "omop_modifiers.yaml",
             SCHEMA_DIR / "profiles" / "omop_episodes.yaml",
         ],
     )
@@ -24,6 +24,10 @@ def test_semantic_engine_loads_builtin_templates_and_profiles() -> None:
     assert tpl.cdm_profile.cdm_table == "observation"
     assert tpl.entity_concept_ids == {4155450}
     assert tpl.value_concept_ids is None
+    assert engine.profile_runtime is not None
+    (field_enum,) = engine.profile_runtime.get("ModifierFields")["registry_members"]
+    assert field_enum == "modifier_fields"
+    assert "measurement_id" in getattr(runtime.modifiers, field_enum).labels
 
 
 def test_semantic_engine_exposes_profile_groups_and_value_scopes() -> None:

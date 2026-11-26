@@ -43,6 +43,7 @@ GEN_TARGETS: dict[str, str] = {
     "omop_semantic_registry": "src/omop_semantics/schema/configuration/registry/omop_semantic_registry.yaml",
     "omop_named_sets": "src/omop_semantics/schema/configuration/core/omop_named_sets.yaml",
     "omop_unknowns": "src/omop_semantics/schema/configuration/core/omop_unknowns.yaml",
+    "omop_links": "src/omop_semantics/schema/configuration/core/omop_links.yaml",
 }
 
 
@@ -106,3 +107,7 @@ def cli(argv: list[str] | None = None) -> int:
     for path in generate_models(args.out):
         print(f"wrote {path}")
     return 0
+
+
+if __name__ == "__main__":
+    sys.exit(cli())
