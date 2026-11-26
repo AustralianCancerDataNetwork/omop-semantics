@@ -6,18 +6,14 @@ It gives you a structured, versioned, portable layer for describing which OMOP c
 
 ---
 
-## Three runtime surfaces
+## Runtime contract owners
 
-- **Value-set runtime**  
-  Stable named concept ids for application logic:  
-  `from omop_semantics.runtime.default_valuesets import runtime`
-
-- **Template/profile runtime**  
-  Compiled semantic templates and CDM profiles via `OmopSemanticEngine`.
-
-- **Fallback concepts**  
-  Canonical unknown and default concepts with reason codes:  
-  `from omop_semantics.unknowns import UNKNOWN`
+| Contract | Public API |
+| --- | --- |
+| Named concepts and value sets | `omop_semantics.runtime.default_valuesets.runtime` |
+| Compiled semantic templates and CDM profiles | `omop_semantics.runtime.OmopSemanticEngine` |
+| Fallback concepts and reason codes | `omop_semantics.unknowns` |
+| CDM 5.4.2 event-field links | `omop_semantics.links` exports `LINK_MECHANISMS`, `LinkMechanism`, and `field_concept_id` |
 
 ---
 

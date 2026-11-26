@@ -1,0 +1,49 @@
+id: https://example.org/omop_semantics/links
+name: omop_links
+title: OMOP CDM Event Field Links
+description: Linking tables and columns for CDM 5.4.2 event_field links.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  omop: https://athena.ohdsi.org/search-terms/terms/
+
+default_prefix: omop
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  LinkMechanismCatalogue:
+    tree_root: true
+    slots:
+      - link_mechanisms
+
+  LinkMechanism:
+    description: A link that records a target row ID and the concept for its ID field.
+    slots:
+      - name
+      - linking_table
+      - event_id_column
+      - field_concept_column
+
+slots:
+  link_mechanisms:
+    range: LinkMechanism
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+    required: true
+
+  name:
+    identifier: true
+    required: true
+
+  linking_table:
+    required: true
+
+  event_id_column:
+    required: true
+
+  field_concept_column:
+    required: true

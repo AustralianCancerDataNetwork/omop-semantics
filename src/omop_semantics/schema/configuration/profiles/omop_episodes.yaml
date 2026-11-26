@@ -19,18 +19,13 @@ ModifierFields:
   name: ModifierFields
   role: modifiers
   registry_members:
-    - condition_occurrence_id
-    - drug_exposure_id
-    - procedure_occurrence_id
-    - episode_id
+    - modifier_fields
 ModifierTables:
   is_a: RegistryGroup
   name: ModifierTables
   role: modifiers
   registry_members:
-    - drug_exposure
-    - episode
-    - observation
+    - modifier_tables
 TreatmentEpisodeTypes:
   is_a: RegistryGroup
   name: TreatmentEpisodeTypes

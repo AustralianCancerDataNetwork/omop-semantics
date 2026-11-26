@@ -1,0 +1,13 @@
+link_mechanisms:
+  - name: measurement
+    linking_table: measurement
+    event_id_column: measurement_event_id
+    field_concept_column: meas_event_field_concept_id
+  - name: observation
+    linking_table: observation
+    event_id_column: observation_event_id
+    field_concept_column: obs_event_field_concept_id
+  - name: episode_event
+    linking_table: episode_event
+    event_id_column: event_id
+    field_concept_column: episode_event_field_concept_id

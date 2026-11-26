@@ -110,7 +110,6 @@ def _profile_paths():
     return [
         INSTANCE_DIR / "profile_groups.yaml",
         SCHEMA_DIR / "profiles" / "omop_staging.yaml",
-        SCHEMA_DIR / "profiles" / "omop_modifiers.yaml",
         SCHEMA_DIR / "profiles" / "omop_episodes.yaml",
     ]
 
@@ -382,8 +381,8 @@ def test_p0_merge_instance_files_rejects_duplicate_group(tmp_path):
 # (CLI: `omop-semantics gen-models`), which calls the LinkML PydanticGenerator with the generation
 # options pinned there (currently `empty_list_for_multivalued_slots = False` = the linkml 1.11.x
 # default). This guard regenerates via the SAME code path and compares exactly - so the test and the
-# CLI can never disagree on flags. Only the two runtime-imported modules are generated; `template_set`
-# is vestigial. If this fails after a schema change, run `omop-semantics gen-models` and commit.
+# CLI can never disagree on flags. `template_set` is vestigial.
+# If this fails after a schema change, run `omop-semantics gen-models`.
 # ----------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("module", list(codegen.GEN_TARGETS))

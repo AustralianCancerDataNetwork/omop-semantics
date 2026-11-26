@@ -65,23 +65,28 @@ named_enumerators:
         label: palliative
   - name: modifier_fields
     class_uri: OmopEnum
+    notes: CDM 5.4.2 field concepts for target row identifiers.
     enum_members:
       - concept_id: 1147127
         label: condition_occurrence_id
-      - concept_id: 1147707
+      - concept_id: 1147094
         label: drug_exposure_id
       - concept_id: 1147082
         label: procedure_occurrence_id
-      - concept_id: 756290
+      - concept_id: 798885
         label: episode_id
       - concept_id: 1147138
         label: measurement_id
+      - concept_id: 1147165
+        label: observation_id
+      - concept_id: 1147115
+        label: device_exposure_id
   - name: modifier_tables
     class_uri: OmopEnum
     enum_members:
       - concept_id: 1147339
         label: drug_exposure
-      - concept_id: 35225440
+      - concept_id: 756347
         label: episode
       - concept_id: 1147304
         label: observation
