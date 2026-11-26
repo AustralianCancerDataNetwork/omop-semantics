@@ -321,6 +321,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="1. Stable named concept ids">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-field-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event-field links
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -665,6 +682,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="1. Stable named concept ids">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-field-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event-field links
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -793,6 +827,19 @@
 </code></pre></div>
 <p>Singleton groups collapse to a plain int automatically; multi-member groups return a <code>RuntimeGroup</code> with <code>.ids</code>, <code>.labels</code>, and <code>.mapper()</code>.</p>
 <p>This surface requires no database and no vocabulary graph. It is the right choice when you want consistent named imports for application logic, validation rules, or generated documentation.</p>
+<h3 id="event-field-links">Event-field links<a class="headerlink" href="#event-field-links" title="Permanent link">&para;</a></h3>
+<p><code>schema/instances/enumerators.yaml</code> defines the CDM 5.4.2 field concepts exposed
+through <code>runtime.modifiers.modifier_fields</code>. Use <code>field_concept_id()</code> to look up
+the concept by target table. The link mechanism supplies the columns on the
+linking table.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">omop_semantics.links</span><span class="w"> </span><span class="kn">import</span> <span class="n">LINK_MECHANISMS</span><span class="p">,</span> <span class="n">field_concept_id</span>
+
+<span class="n">link</span> <span class="o">=</span> <span class="n">LINK_MECHANISMS</span><span class="p">[</span><span class="s2">&quot;measurement&quot;</span><span class="p">]</span>
+<span class="n">link_fields</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">link</span><span class="o">.</span><span class="n">event_id_column</span><span class="p">:</span> <span class="n">condition_occurrence_id</span><span class="p">,</span>
+    <span class="n">link</span><span class="o">.</span><span class="n">field_concept_column</span><span class="p">:</span> <span class="n">field_concept_id</span><span class="p">(</span><span class="s2">&quot;condition_occurrence&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</code></pre></div>
 <h2 id="2-templates-profiles-and-profile-groups">2. Templates, profiles, and profile groups<a class="headerlink" href="#2-templates-profiles-and-profile-groups" title="Permanent link">&para;</a></h2>
 <p>Use <code>OmopSemanticEngine</code> when you need compiled semantic templates, CDM profiles, or profile groups.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">omop_semantics.runtime</span><span class="w"> </span><span class="kn">import</span> <span class="n">OmopSemanticEngine</span>
@@ -805,7 +852,6 @@
     <span class="n">profile_paths</span><span class="o">=</span><span class="p">[</span>
         <span class="n">INSTANCE_DIR</span> <span class="o">/</span> <span class="s2">&quot;profile_groups.yaml&quot;</span><span class="p">,</span>
         <span class="n">SCHEMA_DIR</span> <span class="o">/</span> <span class="s2">&quot;profiles&quot;</span> <span class="o">/</span> <span class="s2">&quot;omop_staging.yaml&quot;</span><span class="p">,</span>
-        <span class="n">SCHEMA_DIR</span> <span class="o">/</span> <span class="s2">&quot;profiles&quot;</span> <span class="o">/</span> <span class="s2">&quot;omop_modifiers.yaml&quot;</span><span class="p">,</span>
         <span class="n">SCHEMA_DIR</span> <span class="o">/</span> <span class="s2">&quot;profiles&quot;</span> <span class="o">/</span> <span class="s2">&quot;omop_episodes.yaml&quot;</span><span class="p">,</span>
     <span class="p">],</span>
 <span class="p">)</span>
