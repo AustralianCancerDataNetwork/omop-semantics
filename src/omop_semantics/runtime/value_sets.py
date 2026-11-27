@@ -29,7 +29,8 @@ as a pure read-only semantic access layer.
 import warnings
 from abc import ABC
 from dataclasses import dataclass
-from typing import Mapping, TypeVar
+from collections.abc import Collection
+from typing import TYPE_CHECKING, Mapping, Protocol, TypeVar
 
 from omop_semantics.schema.generated_models.omop_named_sets import (
     CDMSemanticUnits,
@@ -248,6 +249,19 @@ class RuntimeConcept:
     def values(self) -> set[int]:
         return {self.value if self.value else 0}
 
+
+class ConceptGroupAnchors(Protocol):
+    """Role-aware concept anchors exposed by a semantic unit."""
+
+    @property
+    def parent_ids(self) -> Collection[int]: ...
+
+    @property
+    def excluded_parent_ids(self) -> Collection[int]: ...
+
+    @property
+    def exact_ids(self) -> Collection[int]: ...
+
 class RuntimeSemanticUnit:
 
     """
@@ -381,25 +395,28 @@ class RuntimeSemanticUnit:
         }
         return parent_ids | self.exact_ids
 
-    def __getattr__(self, name: str):
-        if name in self.enums:
-            return self.enums[name]
-        if name in self.groups:
-            g = self.groups[name]
-            if g.is_singleton:
-                return g.value
-            return g
-        if name in self.concepts:
-            return self.concepts[name]
+    # Hidden from type checkers so typed trees (default_valuesets.pyi) report
+    # misspelt names instead of falling back to this dynamic lookup.
+    if not TYPE_CHECKING:
+        def __getattr__(self, name: str) -> RuntimeEnum | RuntimeGroup | OmopConcept | int:
+            if name in self.enums:
+                return self.enums[name]
+            if name in self.groups:
+                g = self.groups[name]
+                if g.is_singleton:
+                    return g.value
+                return g
+            if name in self.concepts:
+                return self.concepts[name]
 
-        for labelled_item in [self.enums, self.groups]:
-            for value in labelled_item.values():
-                try:
-                    return getattr(value, name)
-                except AttributeError:
-                    pass
+            for labelled_item in [self.enums, self.groups]:
+                for value in labelled_item.values():
+                    try:
+                        return getattr(value, name)
+                    except AttributeError:
+                        pass
 
-        raise AttributeError(name) from None
+            raise AttributeError(name) from None
 
     def __repr__(self) -> str:
         parts = []
@@ -473,11 +490,14 @@ class RuntimeValueSet:
             vals |= vs.ids
         return vals
 
-    def __getattr__(self, name: str) -> RuntimeSemanticUnit:
-        try:
-            return self.members[name]
-        except KeyError:
-            raise AttributeError(name)
+    # Hidden from type checkers so typed trees (default_valuesets.pyi) report
+    # misspelt names instead of falling back to this dynamic lookup.
+    if not TYPE_CHECKING:
+        def __getattr__(self, name: str) -> RuntimeSemanticUnit:
+            try:
+                return self.members[name]
+            except KeyError:
+                raise AttributeError(name)
         
     def __repr__(self) -> str:
         keys = ", ".join(sorted(self.members.keys()))
@@ -520,13 +540,16 @@ class RuntimeValueSets:
     def __init__(self, valuesets: dict[str, RuntimeValueSet]):
         self._valuesets = valuesets
 
-    def __getattr__(self, name: str) -> RuntimeValueSet:
-        if name.startswith('_'):
-            raise AttributeError(name)
-        try:
-            return self._valuesets[name]
-        except KeyError:
-            raise AttributeError(name) from None
+    # Hidden from type checkers so typed trees (default_valuesets.pyi) report
+    # misspelt names instead of falling back to this dynamic lookup.
+    if not TYPE_CHECKING:
+        def __getattr__(self, name: str) -> RuntimeValueSet:
+            if name.startswith('_'):
+                raise AttributeError(name)
+            try:
+                return self._valuesets[name]
+            except KeyError:
+                raise AttributeError(name) from None
 
     def __repr__(self) -> str:
         keys = ", ".join(sorted(self._valuesets.keys()))
