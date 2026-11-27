@@ -17,6 +17,7 @@ src/omop_semantics/
 │   ├── instance_loader.py   # YAML loading and profile interpolation helpers
 │   └── renderers.py         # HTML rendering helpers for notebooks
 └── schema/
+    ├── imports.py          # Installed schema paths and LinkML import map
     ├── codegen.py           # PydanticGenerator wrapper and CLI
     ├── dump.py              # YAML dump utility
     ├── configuration/
@@ -37,7 +38,7 @@ from omop_semantics import UNKNOWN, UnknownValue, UnknownReason
 from omop_semantics import BASE_DIR, SCHEMA_DIR, INSTANCE_DIR
 ```
 
-`BASE_DIR` points to `src/omop_semantics/`. `SCHEMA_DIR` and `INSTANCE_DIR` point to the `configuration/` and `instances/` subdirectories.
+`BASE_DIR` points to the installed `omop_semantics` package. `SCHEMA_DIR` and `INSTANCE_DIR` point to its `configuration/` and `instances/` subdirectories. LinkML consumers can use `omop_semantics.schema.schema_path()` and `importmap()` to resolve shipped schemas without network access.
 
 ### Value-set runtime
 

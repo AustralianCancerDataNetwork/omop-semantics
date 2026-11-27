@@ -1,5 +1,5 @@
-id: https://example.org/omop_semantics/cdm_profiles
-name: cdm_profiles
+id: https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_profiles
+name: omop_profiles
 
 imports:
   - omop_base

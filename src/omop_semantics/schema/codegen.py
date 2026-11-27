@@ -21,6 +21,7 @@ from pathlib import Path
 
 from linkml.generators.pydanticgen import PydanticGenerator
 
+from omop_semantics.schema import importmap
 from omop_semantics.utils.paths import BASE_DIR
 
 # Repo root (.../omop-semantics). Generation runs with cwd here and passes repo-root-relative schema
@@ -37,10 +38,10 @@ EMPTY_LIST_FOR_MULTIVALUED = False
 
 # Generated module -> source schema, as paths RELATIVE TO REPO_ROOT.
 # ``omop_semantic_registry`` is the primary runtime module: its schema imports the full tree
-# (registry -> core/omop_templates -> omop_base + omop_profiles), so one regen covers all of them.
+# (omop_semantic_registry -> omop_templates -> omop_base + omop_profiles), so one regen covers all of them.
 # ``template_set`` is intentionally excluded: it is imported nowhere (vestigial).
 GEN_TARGETS: dict[str, str] = {
-    "omop_semantic_registry": "src/omop_semantics/schema/configuration/registry/omop_semantic_registry.yaml",
+    "omop_semantic_registry": "src/omop_semantics/schema/configuration/core/omop_semantic_registry.yaml",
     "omop_named_sets": "src/omop_semantics/schema/configuration/core/omop_named_sets.yaml",
     "omop_unknowns": "src/omop_semantics/schema/configuration/core/omop_unknowns.yaml",
     "omop_links": "src/omop_semantics/schema/configuration/core/omop_links.yaml",
@@ -62,6 +63,7 @@ def render_module(schema_rel: str) -> str:
     with _chdir(REPO_ROOT):
         return PydanticGenerator(
             schema_rel,
+            importmap=importmap(),
             empty_list_for_multivalued_slots=EMPTY_LIST_FOR_MULTIVALUED,
         ).serialize()
 

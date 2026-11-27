@@ -1,4 +1,4 @@
-id: https://example.org/omop_semantics/links
+id: https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_links
 name: omop_links
 title: OMOP CDM Event Field Links
 description: Linking tables and columns for CDM 5.4.2 event_field links.

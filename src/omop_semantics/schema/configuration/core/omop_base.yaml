@@ -1,5 +1,5 @@
-id: https://example.org/omop_semantics
-name: omop_semantic_object
+id: https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base
+name: omop_base
 title: OMOP Semantic Object
 description: >
   Core structure for OMOP concept identifiers used for

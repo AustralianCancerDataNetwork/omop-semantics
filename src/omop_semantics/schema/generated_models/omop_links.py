@@ -69,7 +69,7 @@ class LinkMLMeta(RootModel):
 linkml_meta = LinkMLMeta({'default_prefix': 'omop',
      'default_range': 'string',
      'description': 'Linking tables and columns for CDM 5.4.2 event_field links.',
-     'id': 'https://example.org/omop_semantics/links',
+     'id': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_links',
      'imports': ['linkml:types'],
      'name': 'omop_links',
      'prefixes': {'linkml': {'prefix_prefix': 'linkml',
@@ -81,7 +81,8 @@ linkml_meta = LinkMLMeta({'default_prefix': 'omop',
 
 
 class LinkMechanismCatalogue(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/links', 'tree_root': True})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_links',
+         'tree_root': True})
 
     link_mechanisms: list[LinkMechanism] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['LinkMechanismCatalogue']} })
 
@@ -90,7 +91,7 @@ class LinkMechanism(ConfiguredBaseModel):
     """
     A link that records a target row ID and the concept for its ID field.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/links'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_links'})
 
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['LinkMechanism']} })
     linking_table: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['LinkMechanism']} })

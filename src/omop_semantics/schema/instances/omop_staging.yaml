@@ -1,44 +1,49 @@
-id: https://example.org/omop_semantics
-name: staging
-description: OMOP concepts for semantic role 'staging'
-imports:
-  - ../configuration/core/omop_base.yaml
-  - ../configuration/registry/omop_semantic_registry.yaml
-Modifiers:
+StagingAxis:
   is_a: RegistryFragment
-  name: Modifiers
-  role: modifiers
+  name: StagingAxis
+  role: staging
   groups:
     - TStageConcepts
     - NStageConcepts
     - MStageConcepts
     - GroupStageConcepts
-  notes: Modifiers for neoplastic disease
-ModifierFields:
+  notes: Staging axes for neoplastic disease
+TStageConcepts:
   is_a: RegistryGroup
-  name: ModifierFields
-  role: modifiers
+  name: TStageConcepts
+  role: staging
   registry_members:
-    - modifier_fields
-ModifierTables:
+    - T0
+    - T1
+    - T2
+    - T3
+    - T4
+    - Ta
+    - Tis
+    - TX
+NStageConcepts:
   is_a: RegistryGroup
-  name: ModifierTables
-  role: modifiers
+  name: NStageConcepts
+  role: staging
   registry_members:
-    - modifier_tables
-TreatmentEpisodeTypes:
+    - N0
+    - N1
+    - N2
+    - N3
+    - N4
+    - NX
+MStageConcepts:
   is_a: RegistryGroup
-  name: TreatmentEpisodeTypes
-  role: modifiers
+  name: MStageConcepts
+  role: staging
   registry_members:
-    - treatment_regimen
-    - treatment_cycle
-    - cancer_surgery
-    - radiotherapy
-DiseaseEpisodeTypes:
+    - M0
+    - M1
+    - MX
+GroupStageConcepts:
   is_a: RegistryGroup
-  name: DiseaseEpisodeTypes
-  role: modifiers
+  name: GroupStageConcepts
+  role: staging
   registry_members:
     - group_stage
 group_stage:

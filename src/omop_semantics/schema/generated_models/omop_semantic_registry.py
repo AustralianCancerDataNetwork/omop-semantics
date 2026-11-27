@@ -72,14 +72,14 @@ linkml_meta = LinkMLMeta({'default_prefix': 'omop',
                     'complex semantic definitions, such as staging of neoplastic  '
                     'disease through condition modifiers and their appropriate '
                     'handling in episodes.\n',
-     'id': 'https://example.org/omop_semantic_registry',
-     'imports': ['linkml:types', '../core/omop_templates'],
+     'id': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_semantic_registry',
+     'imports': ['linkml:types', 'omop_templates'],
      'name': 'omop_semantic_registry',
      'prefixes': {'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'},
                   'omop': {'prefix_prefix': 'omop',
                            'prefix_reference': 'https://athena.ohdsi.org/search-terms/terms/'}},
-     'source_file': 'src/omop_semantics/schema/configuration/registry/omop_semantic_registry.yaml',
+     'source_file': 'src/omop_semantics/schema/configuration/core/omop_semantic_registry.yaml',
      'title': 'OMOP Semantic Concept Registry'} )
 
 class CdmTable(str, Enum):
@@ -102,7 +102,8 @@ class CdmTable(str, Enum):
 
 
 class OmopSemanticObject(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/omop_semantics'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True,
+         'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base'})
 
     class_uri: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
@@ -118,7 +119,7 @@ class OmopGroup(OmopSemanticObject):
     Named group of OMOP concepts defined by their membership in a particular group, such  as hierarchy and / or domain. Importantly, this is not a static definition and if the vocabularies are updated, the membership of these groups may change. This is intended to be used for defining sets of concepts that are used in semantic definitions, such as the set of all  T stage concepts.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopGroup',
                                       'name': 'class_uri'}}})
 
@@ -138,7 +139,7 @@ class OmopConcept(OmopSemanticObject):
     """
     A single OMOP concept with semantic annotations
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopConcept',
                                       'name': 'class_uri'}}})
 
@@ -158,7 +159,7 @@ class OmopEnum(OmopSemanticObject):
     Enumeration of permissible values for a particular slot. This is intended to be used for defining slots that have a fixed set of permissible values, such as the staging axis (T, N, M, Group). This will not update dynamically with vocabulary updates, so should be used for concepts that are  short lists and not expected to change over time.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopEnum',
                                       'name': 'class_uri'}}})
 
@@ -177,7 +178,7 @@ class OmopValueSet(OmopSemanticObject):
     A semantic grouping of permissible values for a template slot. Members may be OmopConcepts, OmopGroups, or OmopEnums. This represents a registry-level value domain, not a direct OMOP structure.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopValueSet',
                                       'name': 'class_uri'}}})
 
@@ -196,21 +197,21 @@ class Concept(ConfiguredBaseModel):
     Concept that serves as a member of an OmopEnum. This is intended to be used for defining the permissible values of an OmopEnum, which is a fixed enumeration  of concepts that does not change dynamically with vocabulary updates.  The concept_id and label slots are used to specify the concept_id  and label of the concept that serves as a member of the enumeration.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base'})
 
     concept_id: Optional[int] = Field(default=None, description="""OMOP concept_id""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopConcept', 'Concept']} })
     label: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopConcept', 'Concept']} })
 
 
 class CDMProfiles(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/cdm_profiles',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_profiles',
          'tree_root': True})
 
     profiles: Optional[list[OmopCdmProfile]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['CDMProfiles']} })
 
 
 class OmopCdmProfile(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/cdm_profiles'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_profiles'})
 
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',
@@ -234,7 +235,7 @@ class OmopTemplate(ConfiguredBaseModel):
     A compositional semantic template describing how one or more OMOP concepts are represented in OMOP CDM tables (e.g. observation, measurement).
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_templates'})
 
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',
@@ -263,7 +264,7 @@ class Registry(ConfiguredBaseModel):
     A registry of OMOP concepts, templates, and groups used for complex semantic definitions.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantic_registry'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_semantic_registry'})
 
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',
@@ -272,11 +273,13 @@ class Registry(ConfiguredBaseModel):
                        'RegistryGroup']} })
     description: Optional[str] = Field(default=None, description="""Description of the registry or group, intended for documentation purposes.
 """, json_schema_extra = { "linkml_meta": {'domain_of': ['Registry']} })
-    fragments: Optional[list[RegistryFragment]] = Field(default=None, description="""List of registry fragments contained in this registry. This is intended for modularisation of units of semantic definitions, such as all concepts related to staging of neoplastic disease so that then can be reused in different registry profile definitions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Registry']} })
+    fragments: Optional[list[RegistryFragment]] = Field(default=None, description="""List of registry fragments contained in this registry. This is intended for modularisation of units of semantic definitions, such as all concepts related to staging of neoplastic disease so that then can be reused in different registry profile definitions.
+""", json_schema_extra = { "linkml_meta": {'domain_of': ['Registry']} })
 
 
 class RegistryFragment(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantic_registry', 'tree_root': True})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_semantic_registry',
+         'tree_root': True})
 
     groups: Optional[list[RegistryGroup]] = Field(default=None, description="""List of registry groups contained in this registry. This is intended for organisation and documentation  purposes, and does not have any semantic meaning beyond indicating that these groups are part of the same  registry.
 """, json_schema_extra = { "linkml_meta": {'domain_of': ['RegistryFragment']} })
@@ -287,7 +290,7 @@ class RegistryGroup(ConfiguredBaseModel):
     Named grouping of semantic templates or definitions in the registry, used for organisation, documentation, and navigation. Members are registry symbols, not OMOP concept identifiers.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantic_registry'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_semantic_registry'})
 
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject',
                        'OmopCdmProfile',
