@@ -80,3 +80,5 @@ valuesets:
     semantic_units:
       - demography_concepts
       - sact_concepts
+      - family_history_observation
+      - yes_no_answers
