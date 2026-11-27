@@ -82,7 +82,7 @@ The shipped value sets are defined in `instances/valuesets.yaml`. Current top-le
 | `measurements_numeric` | Body size units and measurements, lab values, smoking, PROMs, performance status |
 | `staging` | T, N, M, and group stage concepts plus stage edition |
 | `visits` | Visit modalities |
-| `observations` | Demography and SACT concepts |
+| `observations` | Demography and SACT concepts, the family-history observation concept, and yes/no answers |
 
 ## Loading your own value sets
 

@@ -199,6 +199,11 @@ named_enumerators:
         label: resolved_condition
       - concept_id: 32893
         label: confirmed_diagnosis
+      - concept_id: 32902
+        label: primary_diagnosis
+      # Secondary diagnosis (32908) is the approved stand-in for a contributing role.
+      - concept_id: 32908
+        label: secondary_diagnosis
   - name: encounter_provider_specialty
     class_uri: OmopEnum
     enum_members:
@@ -240,6 +245,20 @@ named_enumerators:
     enum_members:
       - concept_id: 36305384
         label: ecog_performance_status
+  - name: family_history_observation
+    class_uri: OmopEnum
+    enum_members:
+      # Used as observation_concept_id; the plain condition goes in value_as_concept_id.
+      - concept_id: 4167217
+        label: family_history_of_clinical_finding
+  - name: yes_no_answers
+    class_uri: OmopEnum
+    enum_members:
+      # Preferred to LOINC LA33-6/LA32-8: SNOMED presence hierarchy, independent of a LOINC answer list.
+      - concept_id: 4188539
+        label: "yes"
+      - concept_id: 4188540
+        label: "no"
   - name: lab_measurements
     class_uri: OmopEnum
     enum_members:

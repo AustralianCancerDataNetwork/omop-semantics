@@ -15,6 +15,18 @@ from omop_semantics.runtime.value_sets import (
 def test_default_valuesets_support_stable_attribute_access() -> None:
     assert runtime.types.disease_episode_types.episode_of_care == 32533
     assert runtime.types.source_types.ehr_defined == 32544
+    condition_status = runtime.condition_modifiers.condition_status
+    assert condition_status.primary_diagnosis == 32902
+    assert condition_status.secondary_diagnosis == 32908
+
+
+def test_observations_expose_family_history_and_yes_no_concepts() -> None:
+    assert (
+        runtime.observations.family_history_observation.family_history_of_clinical_finding
+        == 4167217
+    )
+    assert runtime.observations.yes_no_answers.yes == 4188539
+    assert runtime.observations.yes_no_answers.no == 4188540
 
 
 def test_runtime_attribute_lookup_respects_namespace_boundaries() -> None:
