@@ -64,16 +64,14 @@ class DerivationRule:
     default: Any = NO_DEFAULT
 
 
-SUPPRESSION_MODES = frozenset({"drop", "fail", "keep_as_value", "keep_as_modifier"})
+SUPPRESSION_MODES = frozenset({"drop", "fail", "keep_as_value"})
 """Recognized `SpecialValuePolicy.suppression_mode` values.
 
 Only `drop` and `fail` have runtime behavior today — both are the degenerate,
 single-field case validated against real data (a "meets criteria for X" Yes/No
 item, where the negative answer carries no positive clinical content of its
-own). `keep_as_value` and `keep_as_modifier` are named here per the schema
-proposal so definitions can be authored against a stable enum, but they raise
-`NotImplementedError` if actually triggered — there is no validated use case
-yet for what they should bind.
+own). `keep_as_value` is reserved for the planned special-value behavior and
+raises `NotImplementedError` if triggered until that behavior is implemented.
 """
 
 
@@ -135,7 +133,6 @@ class OutputDefinition:
 
     name: str
     role: str
-    template_names: tuple[str, ...] = ()
     row_projections: tuple[OutputRowProjection, ...] = ()
     link_rules: tuple[OutputLinkRule, ...] = ()
     derivation_rules: tuple[DerivationRule, ...] = ()
@@ -156,7 +153,6 @@ class CompiledRowProjection:
 class CompiledOutputDefinition:
     name: str
     role: str
-    template_names: tuple[str, ...]
     row_projections: tuple[CompiledRowProjection, ...]
     link_rules: tuple[OutputLinkRule, ...]
     derivation_rules: tuple[DerivationRule, ...]
@@ -175,23 +171,17 @@ class OutputDefinitionRuntime:
     ) -> None:
         self.projection_profiles = projection_profiles
         self._compiled_by_name: dict[str, CompiledOutputDefinition] = {}
-        self._compiled_by_template: dict[str, list[CompiledOutputDefinition]] = {}
         for definition in definitions:
             compiled = self._compile_definition(definition)
             if compiled.name in self._compiled_by_name:
                 raise ValueError(f"Duplicate output definition name: '{compiled.name}'")
             self._compiled_by_name[compiled.name] = compiled
-            for template_name in compiled.template_names:
-                self._compiled_by_template.setdefault(template_name, []).append(compiled)
 
     def names(self) -> tuple[str, ...]:
         return tuple(sorted(self._compiled_by_name))
 
     def get(self, name: str) -> CompiledOutputDefinition:
         return self._compiled_by_name[name]
-
-    def for_template(self, template_name: str) -> list[CompiledOutputDefinition]:
-        return list(self._compiled_by_template.get(template_name, ()))
 
     def project(self, definition_name: str, context: Mapping[str, Any]) -> ProjectedOutputBundle:
         compiled = self.get(definition_name)
@@ -269,10 +259,9 @@ class OutputDefinitionRuntime:
                                 f"row '{row_projection.row_id}' hit special value '{code}' "
                                 f"on '{policy.source_field.path}', configured to fail"
                             )
-                        else:
+                        elif policy.suppression_mode == "keep_as_value":
                             raise NotImplementedError(
-                                f"suppression_mode '{policy.suppression_mode}' has no "
-                                "runtime behavior yet"
+                                "suppression_mode 'keep_as_value' has no runtime behavior yet"
                             )
 
             if row_suppressed:
@@ -345,25 +334,6 @@ class OutputDefinitionRuntime:
             suppressed_rows=suppressed_rows,
             audit_notes=audit_notes,
         )
-
-    def project_for_template(
-        self,
-        template_name: str,
-        context: Mapping[str, Any],
-        *,
-        definition_name: str | None = None,
-    ) -> ProjectedOutputBundle:
-        matches = self.for_template(template_name)
-        if definition_name is not None:
-            matches = [item for item in matches if item.name == definition_name]
-        if not matches:
-            raise KeyError(f"No output definition found for template '{template_name}'")
-        if len(matches) > 1:
-            names = ", ".join(sorted(item.name for item in matches))
-            raise ValueError(
-                f"Multiple output definitions match template '{template_name}': {names}"
-            )
-        return self.project(matches[0].name, context)
 
     def _compile_definition(self, definition: OutputDefinition) -> CompiledOutputDefinition:
         row_ids: set[str] = set()
@@ -441,7 +411,6 @@ class OutputDefinitionRuntime:
         return CompiledOutputDefinition(
             name=definition.name,
             role=definition.role,
-            template_names=tuple(definition.template_names),
             row_projections=tuple(compiled_rows),
             link_rules=tuple(definition.link_rules),
             derivation_rules=tuple(definition.derivation_rules),

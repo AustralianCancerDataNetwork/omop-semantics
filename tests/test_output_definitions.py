@@ -80,7 +80,6 @@ def test_output_definition_runtime_projects_rows_from_context() -> None:
             OutputDefinition(
                 name="numeric_measurement",
                 role="measurement",
-                template_names=("Country of birth",),
                 row_projections=(
                     OutputRowProjection(
                         row_id="measurement",
@@ -237,56 +236,6 @@ def test_output_definition_runtime_validates_slot_names_at_compile_time() -> Non
                     ),
                 )
             ]
-        )
-
-
-def test_output_definition_runtime_project_for_template_requires_unique_match() -> None:
-    engine = OmopSemanticEngine.from_yaml_paths(
-        registry_paths=[INSTANCE_DIR / "demographic.yaml"],
-        profile_paths=[],
-    )
-    runtime = engine.build_output_definition_runtime(
-        [
-            OutputDefinition(
-                name="a",
-                role="demographic",
-                template_names=("Language spoken",),
-                row_projections=(
-                    OutputRowProjection(
-                        row_id="obs",
-                        profile_name="observation_coded",
-                        field_bindings={
-                            "observation_concept_id": ContextFieldRef("grounded.concept_id"),
-                            "value_as_concept_id": ContextFieldRef("source.value_concept_id"),
-                        },
-                    ),
-                ),
-            ),
-            OutputDefinition(
-                name="b",
-                role="demographic",
-                template_names=("Language spoken",),
-                row_projections=(
-                    OutputRowProjection(
-                        row_id="obs",
-                        profile_name="observation_coded",
-                        field_bindings={
-                            "observation_concept_id": ContextFieldRef("grounded.concept_id"),
-                            "value_as_concept_id": ContextFieldRef("source.value_concept_id"),
-                        },
-                    ),
-                ),
-            ),
-        ]
-    )
-
-    with pytest.raises(ValueError, match="Multiple output definitions match template"):
-        runtime.project_for_template(
-            "Language spoken",
-            {
-                "grounded": {"concept_id": 4052785},
-                "source": {"value_concept_id": 4182347},
-            },
         )
 
 
@@ -574,9 +523,9 @@ def test_special_value_policy_validates_suppression_mode_at_compile_time() -> No
         special_value_policy=SpecialValuePolicy(
             source_field=ContextFieldRef("source.raw_value"),
             allowed_special_values=frozenset({"0"}),
-            suppression_mode="bogus_mode",
+            suppression_mode="keep_as_modifier",
         ),
     )
 
-    with pytest.raises(ValueError, match="unrecognized suppression_mode 'bogus_mode'"):
+    with pytest.raises(ValueError, match="unrecognized suppression_mode 'keep_as_modifier'"):
         engine.build_output_definition_runtime([definition])
