@@ -40,6 +40,7 @@ from .output_definitions import (
     SpecialValuePolicy,
     SUPPRESSION_MODES,
 )
+from .value_sets import ConceptGroupAnchors
 from .viz import (
     DefinitionOutline,
     MermaidIdAllocator,
@@ -55,6 +56,7 @@ from .viz import (
 )
 __all__ = [
     "Html",
+    "ConceptGroupAnchors",
     "OmopSemanticResolver",
     "OmopTemplateRuntime",
     "OmopRegistryRuntime",
