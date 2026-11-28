@@ -11,3 +11,6 @@ wheels/
 *playing*
 *old*
 examples/output/
+
+# Test coverage
+.coverage

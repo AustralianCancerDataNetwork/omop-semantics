@@ -540,6 +540,9 @@ class RuntimeValueSets:
     def __init__(self, valuesets: dict[str, RuntimeValueSet]):
         self._valuesets = valuesets
 
+    def __getitem__(self, name: str) -> RuntimeValueSet:
+        return self._valuesets[name]
+
     # Hidden from type checkers so typed trees (default_valuesets.pyi) report
     # misspelt names instead of falling back to this dynamic lookup.
     if not TYPE_CHECKING:

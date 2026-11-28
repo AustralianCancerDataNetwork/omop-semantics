@@ -1,0 +1,81 @@
+- name: U1 coded result
+  binding: {shape: coded_measurement, roles: {concept: assay, value: result}}
+  record: {assay: 3024653, result: 4188539}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {measurement_concept_id: 3024653, value_as_concept_id: 4188539}
+- name: U2 ordinal
+  binding: {shape: histological_grade_value, roles: {concept: finding, answer: grade}}
+  record: {finding: 3024653, grade: grade_2}
+  shape_version: "1"
+  status: ok
+  ranks: [2]
+  rows:
+    - {measurement_concept_id: 3024653, value_as_concept_id: 1634752}
+- name: U3 numeric
+  binding: {shape: numeric_measurement, roles: {concept: assay, value: result}}
+  record: {assay: 3024653, result: "2.25"}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {measurement_concept_id: 3024653, value_as_number: 2.25}
+- name: U3 numeric from code
+  binding: {shape: score_from_code, roles: {concept: assay, score: result}}
+  record: {assay: 3024653, result: absent}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {measurement_concept_id: 3024653, value_as_number: 0}
+- name: U4 numeric with unit
+  binding:
+    shape: numeric_measurement_with_context_unit
+    roles: {concept: assay, value: result}
+    context: {unit: unit}
+  record: {assay: 4099154, result: 132, unit: 9529}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {measurement_concept_id: 4099154, value_as_number: 132, unit_concept_id: 9529}
+- name: U5 numeric with operator, unit and range
+  binding:
+    shape: numeric_measurement_with_operator
+    roles: {concept: assay, value: result, operator: comparator}
+    context: {unit: units, range_low: min, range_high: max}
+  record: {assay: 4099154, result: 75, units: 9529, comparator: 4171756, min: 50, max: 80}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {measurement_concept_id: 4099154, value_as_number: 75, unit_concept_id: 9529, operator_concept_id: 4171756, range_low: 50, range_high: 80}
+- name: U7 condition with status
+  binding: {shape: condition_with_status_role, roles: {concept: clinical, status: role}}
+  record: {clinical: 36769180, role: primary_diagnosis}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {condition_concept_id: 36769180, condition_status_concept_id: 32902}
+  checks: [deferred]
+- name: U7 negative gate
+  binding: {shape: criteria_gate_condition, roles: {concept: c, answer: a}, codes: {yes: ["true"], no: ["false"]}}
+  record: {c: 36769180, a: false}
+  shape_version: "1"
+  status: suppressed
+  rows: []
+  decisions:
+    - {row: condition, mode: drop, source_code: "false", reason: null}
+- name: partial date
+  binding: {shape: partial_date_observation, roles: {concept: c, year: y, month: m, day: d}}
+  record: {c: 4167217, y: "2024", m: "02"}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {observation_concept_id: 4167217, value_as_string: "2024-02"}
+- name: keep unknown with reason
+  binding: {shape: observation_with_unknown, roles: {concept: c, answer: a}}
+  record: {c: 4167217, a: declined}
+  shape_version: "1"
+  status: ok
+  rows:
+    - {observation_concept_id: 4167217, value_as_concept_id: 4129922}
+  decisions:
+    - {row: observation, mode: keep_as_value, source_code: declined, reason: asked_declined}

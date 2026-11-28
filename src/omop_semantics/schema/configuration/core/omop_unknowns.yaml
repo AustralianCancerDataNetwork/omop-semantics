@@ -53,3 +53,10 @@ enums:
         description: The source value was absent.
       mapping_failed:
         description: A source value was present but could not be mapped.
+      asked_unknown:
+        description: The source was asked and did not know (HL7 ASKU).
+      not_asked:
+        description: The source was not asked (HL7 NASK).
+      asked_declined:
+        description: The source was asked and declined to answer (HL7 FHIR DataAbsentReason asked-declined).
+        meaning: https://hl7.org/fhir/codesystem-data-absent-reason.html#data-absent-reason-asked-declined
