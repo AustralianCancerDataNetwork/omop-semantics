@@ -7,9 +7,7 @@ The package ships two asset directories:
 ```
 src/omop_semantics/schema/
 ├── configuration/          # LinkML schema definitions
-│   ├── core/               # Base primitives, profiles, templates, named-set schema
-│   ├── registry/           # Registry and fragment structures
-│   └── profiles/           # Domain profile modules (staging, modifiers, episodes)
+│   └── core/               # Base, profile, template, registry, named-set, unknown and link schemas
 └── instances/              # YAML instance files (the authoring surface)
     ├── enumerators.yaml
     ├── valuesets.yaml
@@ -17,7 +15,9 @@ src/omop_semantics/schema/
     ├── profile_groups.yaml
     ├── demographic.yaml
     ├── genomic.yaml
-    └── provider_specialty.yaml
+    ├── provider_specialty.yaml
+    ├── omop_staging.yaml
+    └── omop_episodes.yaml
 ```
 
 The `instances/` directory is where the semantic conventions live. The `configuration/` directory contains the LinkML schemas that validate them.

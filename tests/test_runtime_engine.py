@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from omop_semantics import INSTANCE_DIR, SCHEMA_DIR
+from omop_semantics import INSTANCE_DIR
 from omop_semantics.runtime import OmopSemanticEngine
 from omop_semantics.runtime.default_valuesets import runtime
 
@@ -12,8 +12,8 @@ def test_semantic_engine_loads_builtin_templates_and_profiles() -> None:
         ],
         profile_paths=[
             INSTANCE_DIR / "profile_groups.yaml",
-            SCHEMA_DIR / "profiles" / "omop_staging.yaml",
-            SCHEMA_DIR / "profiles" / "omop_episodes.yaml",
+            INSTANCE_DIR / "omop_staging.yaml",
+            INSTANCE_DIR / "omop_episodes.yaml",
         ],
     )
 

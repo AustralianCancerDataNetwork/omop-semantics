@@ -70,7 +70,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'omop',
      'default_range': 'string',
      'description': 'Behavioural fallbacks, deliberately kept out of the value-set '
                     'runtime.\n',
-     'id': 'https://example.org/omop_semantics/unknowns',
+     'id': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_unknowns',
      'imports': ['linkml:types', 'omop_base'],
      'name': 'omop_unknowns',
      'prefixes': {'linkml': {'prefix_prefix': 'linkml',
@@ -93,7 +93,8 @@ class UnknownReason(str, Enum):
 
 
 class OmopSemanticObject(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True, 'from_schema': 'https://example.org/omop_semantics'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'abstract': True,
+         'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base'})
 
     class_uri: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
     name: str = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['OmopSemanticObject']} })
@@ -105,7 +106,7 @@ class OmopGroup(OmopSemanticObject):
     Named group of OMOP concepts defined by their membership in a particular group, such  as hierarchy and / or domain. Importantly, this is not a static definition and if the vocabularies are updated, the membership of these groups may change. This is intended to be used for defining sets of concepts that are used in semantic definitions, such as the set of all  T stage concepts.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopGroup',
                                       'name': 'class_uri'}}})
 
@@ -121,7 +122,7 @@ class OmopConcept(OmopSemanticObject):
     """
     A single OMOP concept with semantic annotations
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopConcept',
                                       'name': 'class_uri'}}})
 
@@ -137,7 +138,7 @@ class OmopEnum(OmopSemanticObject):
     Enumeration of permissible values for a particular slot. This is intended to be used for defining slots that have a fixed set of permissible values, such as the staging axis (T, N, M, Group). This will not update dynamically with vocabulary updates, so should be used for concepts that are  short lists and not expected to change over time.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopEnum',
                                       'name': 'class_uri'}}})
 
@@ -152,7 +153,7 @@ class OmopValueSet(OmopSemanticObject):
     A semantic grouping of permissible values for a template slot. Members may be OmopConcepts, OmopGroups, or OmopEnums. This represents a registry-level value domain, not a direct OMOP structure.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base',
          'slot_usage': {'class_uri': {'equals_string': 'OmopValueSet',
                                       'name': 'class_uri'}}})
 
@@ -167,21 +168,21 @@ class Concept(ConfiguredBaseModel):
     Concept that serves as a member of an OmopEnum. This is intended to be used for defining the permissible values of an OmopEnum, which is a fixed enumeration  of concepts that does not change dynamically with vocabulary updates.  The concept_id and label slots are used to specify the concept_id  and label of the concept that serves as a member of the enumeration.
 
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_base'})
 
     concept_id: Optional[int] = Field(default=None, description="""OMOP concept_id""", json_schema_extra = { "linkml_meta": {'domain_of': ['OmopConcept', 'Concept', 'UnknownConcept']} })
     label: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopConcept', 'Concept', 'UnknownConcept']} })
 
 
 class UnknownCatalogue(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/unknowns',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_unknowns',
          'tree_root': True})
 
     unknowns: list[UnknownConcept] = Field(default=..., json_schema_extra = { "linkml_meta": {'domain_of': ['UnknownCatalogue']} })
 
 
 class UnknownConcept(Concept):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://example.org/omop_semantics/unknowns',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_unknowns',
          'slot_usage': {'concept_id': {'name': 'concept_id', 'required': True},
                         'label': {'identifier': True,
                                   'name': 'label',

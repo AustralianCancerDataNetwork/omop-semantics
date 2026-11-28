@@ -1,4 +1,4 @@
-id: https://example.org/omop_semantics/unknowns
+id: https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_unknowns
 name: omop_unknowns
 title: OMOP Behavioural Fallback Concepts
 description: >

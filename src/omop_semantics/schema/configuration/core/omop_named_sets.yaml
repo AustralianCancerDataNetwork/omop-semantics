@@ -1,5 +1,5 @@
-id: https://example.org/omop_semantics/cdm_value_sets
-name: cdm_value_sets
+id: https://australiancancerdatanetwork.github.io/omop-semantics/schema/core/omop_named_sets
+name: omop_named_sets
 
 imports:
   - omop_base

@@ -46,7 +46,7 @@ Use `OmopSemanticEngine` when you need compiled semantic templates, CDM profiles
 
 ```python
 from omop_semantics.runtime import OmopSemanticEngine
-from omop_semantics import INSTANCE_DIR, SCHEMA_DIR
+from omop_semantics import INSTANCE_DIR
 
 engine = OmopSemanticEngine.from_yaml_paths(
     registry_paths=[
@@ -54,8 +54,8 @@ engine = OmopSemanticEngine.from_yaml_paths(
     ],
     profile_paths=[
         INSTANCE_DIR / "profile_groups.yaml",
-        SCHEMA_DIR / "profiles" / "omop_staging.yaml",
-        SCHEMA_DIR / "profiles" / "omop_episodes.yaml",
+        INSTANCE_DIR / "omop_staging.yaml",
+        INSTANCE_DIR / "omop_episodes.yaml",
     ],
 )
 ```
