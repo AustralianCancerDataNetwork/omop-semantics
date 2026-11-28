@@ -228,6 +228,9 @@ class OmopCdmProfile(ConfiguredBaseModel):
     numeric_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
     string_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
     reference_slots: Optional[list[str]] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    event_date_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    visit_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
+    care_site_slot: Optional[str] = Field(default=None, json_schema_extra = { "linkml_meta": {'domain_of': ['OmopCdmProfile']} })
 
 
 class OmopTemplate(ConfiguredBaseModel):

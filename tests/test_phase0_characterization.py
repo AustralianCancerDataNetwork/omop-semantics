@@ -72,7 +72,7 @@ GOLDEN_PROFILES = {
     "observation_with_qualifier": ("observation", "observation_concept_id", None, None, None, None, ("qualifier_concept_id",), (), (), ()),
     "measurement_numeric": ("measurement", "measurement_concept_id", "value_as_number", None, None, None, (), (), (), ()),
     "measurement_numeric_with_unit": ("measurement", "measurement_concept_id", "value_as_number", "unit_concept_id", None, None, (), (), (), ()),
-    "measurement_numeric_with_operator": ("measurement", "measurement_concept_id", "value_as_number", "unit_concept_id", "operator_concept_id", None, (), (), (), ()),
+    "measurement_numeric_with_operator": ("measurement", "measurement_concept_id", "value_as_number", "unit_concept_id", "operator_concept_id", None, (), ("range_low", "range_high"), (), ()),
     "measurement_coded": ("measurement", "measurement_concept_id", "value_as_concept_id", None, None, None, (), (), (), ()),
     "measurement_simple": ("measurement", "measurement_concept_id", None, None, None, None, (), (), (), ()),
     "procedure_simple": ("procedure_occurrence", "procedure_concept_id", None, None, None, None, (), (), (), ()),
@@ -332,6 +332,9 @@ def test_p0_interpolate_profiles_expands_named_cdm_profile():
         "numeric_slots": None,
         "string_slots": None,
         "reference_slots": None,
+        "event_date_slot": "observation_date",
+        "visit_slot": "visit_occurrence_id",
+        "care_site_slot": None,
     }
     assert "concept_slot" not in member and "value_slot" not in member
 

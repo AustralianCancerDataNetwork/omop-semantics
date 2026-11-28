@@ -1,0 +1,1395 @@
+{
+  "$defs": {
+    "AnsweredPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "test": {
+          "enum": [
+            "answered",
+            "unanswered"
+          ],
+          "title": "Test",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "test"
+      ],
+      "title": "AnsweredPredicate",
+      "type": "object"
+    },
+    "BindingMap": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_codes": {
+          "items": {
+            "$ref": "#/$defs/BindingMapEntry"
+          },
+          "minItems": 1,
+          "title": "Binding Codes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "binding_codes"
+      ],
+      "title": "BindingMap",
+      "type": "object"
+    },
+    "BindingMapEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "codes_from": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Codes From",
+          "type": "string"
+        },
+        "concept": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Concept",
+          "type": "string"
+        }
+      },
+      "required": [
+        "codes_from",
+        "concept"
+      ],
+      "title": "BindingMapEntry",
+      "type": "object"
+    },
+    "CdmTable": {
+      "description": "OMOP CDM table to which a semantic template applies",
+      "enum": [
+        "observation",
+        "measurement",
+        "drug_exposure",
+        "procedure_occurrence",
+        "condition_occurrence",
+        "device_exposure",
+        "visit_occurrence",
+        "death",
+        "specimen",
+        "fact_relationship",
+        "episode",
+        "episode_event"
+      ],
+      "title": "CdmTable",
+      "type": "string"
+    },
+    "ClinicalDomain": {
+      "description": "Domains supported for event concepts in the CDM projection contract.",
+      "enum": [
+        "Condition",
+        "Device",
+        "Drug",
+        "Episode",
+        "Measurement",
+        "Observation",
+        "Procedure",
+        "Specimen",
+        "Visit"
+      ],
+      "title": "ClinicalDomain",
+      "type": "string"
+    },
+    "Coded": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "coded",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InlineMap_ConceptMapEntry_"
+            },
+            {
+              "$ref": "#/$defs/RegistryLabelMap"
+            },
+            {
+              "$ref": "#/$defs/ExternalMap"
+            },
+            {
+              "$ref": "#/$defs/BindingMap"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mapping"
+        }
+      },
+      "required": [
+        "kind",
+        "source"
+      ],
+      "title": "Coded",
+      "type": "object"
+    },
+    "ConceptMapEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "concept": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Concept",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "concept"
+      ],
+      "title": "ConceptMapEntry",
+      "type": "object"
+    },
+    "ContextInput": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Context",
+          "type": "string"
+        }
+      },
+      "required": [
+        "context"
+      ],
+      "title": "ContextInput",
+      "type": "object"
+    },
+    "DateSource": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "when": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "answered": "#/$defs/AnsweredPredicate",
+                  "in": "#/$defs/MembershipPredicate",
+                  "not_in": "#/$defs/MembershipPredicate",
+                  "unanswered": "#/$defs/AnsweredPredicate"
+                },
+                "propertyName": "test"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MembershipPredicate"
+                },
+                {
+                  "$ref": "#/$defs/AnsweredPredicate"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "When"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "DateSource",
+      "type": "object"
+    },
+    "Derivation": {
+      "additionalProperties": false,
+      "properties": {
+        "target_slot": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Target Slot",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InlineMap_ConceptMapEntry_"
+            },
+            {
+              "$ref": "#/$defs/RegistryLabelMap"
+            },
+            {
+              "$ref": "#/$defs/ExternalMap"
+            },
+            {
+              "$ref": "#/$defs/BindingMap"
+            },
+            {
+              "$ref": "#/$defs/InlineMap_NumberMapEntry_"
+            }
+          ],
+          "title": "Mapping"
+        },
+        "when": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "answered": "#/$defs/AnsweredPredicate",
+                  "in": "#/$defs/MembershipPredicate",
+                  "not_in": "#/$defs/MembershipPredicate",
+                  "unanswered": "#/$defs/AnsweredPredicate"
+                },
+                "propertyName": "test"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MembershipPredicate"
+                },
+                {
+                  "$ref": "#/$defs/AnsweredPredicate"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "When"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "target_slot",
+        "source",
+        "mapping"
+      ],
+      "title": "Derivation",
+      "type": "object"
+    },
+    "DomainConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "domain",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference": {
+          "$ref": "#/$defs/ClinicalDomain"
+        }
+      },
+      "required": [
+        "kind",
+        "reference"
+      ],
+      "title": "DomainConstraint",
+      "type": "object"
+    },
+    "ExternalMap": {
+      "additionalProperties": false,
+      "properties": {
+        "external_map": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "External Map",
+          "type": "string"
+        }
+      },
+      "required": [
+        "external_map"
+      ],
+      "title": "ExternalMap",
+      "type": "object"
+    },
+    "InlineMap_ConceptMapEntry_": {
+      "additionalProperties": false,
+      "properties": {
+        "code_map": {
+          "items": {
+            "$ref": "#/$defs/ConceptMapEntry"
+          },
+          "minItems": 1,
+          "title": "Code Map",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code_map"
+      ],
+      "title": "InlineMap[ConceptMapEntry]",
+      "type": "object"
+    },
+    "InlineMap_NumberMapEntry_": {
+      "additionalProperties": false,
+      "properties": {
+        "code_map": {
+          "items": {
+            "$ref": "#/$defs/NumberMapEntry"
+          },
+          "minItems": 1,
+          "title": "Code Map",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code_map"
+      ],
+      "title": "InlineMap[NumberMapEntry]",
+      "type": "object"
+    },
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "source_row": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Source Row",
+          "type": "string"
+        },
+        "mechanism": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Mechanism",
+          "type": "string"
+        },
+        "target_row": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Row"
+        },
+        "target_item": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Item"
+        },
+        "target_table": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CdmTable"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "when": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "answered": "#/$defs/AnsweredPredicate",
+                  "in": "#/$defs/MembershipPredicate",
+                  "not_in": "#/$defs/MembershipPredicate",
+                  "unanswered": "#/$defs/AnsweredPredicate"
+                },
+                "propertyName": "test"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MembershipPredicate"
+                },
+                {
+                  "$ref": "#/$defs/AnsweredPredicate"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "When"
+        },
+        "required_target": {
+          "default": true,
+          "title": "Required Target",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source_row",
+        "mechanism"
+      ],
+      "title": "Link",
+      "type": "object"
+    },
+    "MembershipPredicate": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "test": {
+          "enum": [
+            "in",
+            "not_in"
+          ],
+          "title": "Test",
+          "type": "string"
+        },
+        "codes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Codes",
+          "type": "array"
+        },
+        "codes_from": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+            "type": "string"
+          },
+          "title": "Codes From",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "test"
+      ],
+      "title": "MembershipPredicate",
+      "type": "object"
+    },
+    "NumberMapEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "number"
+        }
+      },
+      "required": [
+        "code",
+        "number"
+      ],
+      "title": "NumberMapEntry",
+      "type": "object"
+    },
+    "Numeric": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "numeric",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "operator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operator"
+        }
+      },
+      "required": [
+        "kind",
+        "source"
+      ],
+      "title": "Numeric",
+      "type": "object"
+    },
+    "NumericFromCode": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "numeric_from_code",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InlineMap_NumberMapEntry_"
+            },
+            {
+              "$ref": "#/$defs/ExternalMap"
+            }
+          ],
+          "title": "Mapping"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "mapping"
+      ],
+      "title": "NumericFromCode",
+      "type": "object"
+    },
+    "NumericWithUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "numeric_with_unit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "unit": {
+          "$ref": "#/$defs/UnitPolicy"
+        },
+        "operator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operator"
+        },
+        "range_low": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range Low"
+        },
+        "range_high": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range High"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "unit"
+      ],
+      "title": "NumericWithUnit",
+      "type": "object"
+    },
+    "Ordinal": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ordinal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "mapping": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InlineMap_ConceptMapEntry_"
+            },
+            {
+              "$ref": "#/$defs/RegistryLabelMap"
+            },
+            {
+              "$ref": "#/$defs/ExternalMap"
+            },
+            {
+              "$ref": "#/$defs/BindingMap"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mapping"
+        },
+        "order": {
+          "items": {
+            "minLength": 1,
+            "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Order",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "order"
+      ],
+      "title": "Ordinal",
+      "type": "object"
+    },
+    "PartialDate": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "partial_date",
+          "title": "Kind",
+          "type": "string"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Year"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Month"
+        },
+        "day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Day"
+        }
+      },
+      "required": [
+        "kind",
+        "year"
+      ],
+      "title": "PartialDate",
+      "type": "object"
+    },
+    "Presence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "presence",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Presence",
+      "type": "object"
+    },
+    "RegistryConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "exact",
+            "members",
+            "descendants",
+            "composite"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference"
+      ],
+      "title": "RegistryConstraint",
+      "type": "object"
+    },
+    "RegistryLabelMap": {
+      "additionalProperties": false,
+      "properties": {
+        "registry_labels": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Registry Labels",
+          "type": "string"
+        }
+      },
+      "required": [
+        "registry_labels"
+      ],
+      "title": "RegistryLabelMap",
+      "type": "object"
+    },
+    "RoleInput": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role"
+      ],
+      "title": "RoleInput",
+      "type": "object"
+    },
+    "Row": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "profile": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Profile",
+          "type": "string"
+        },
+        "concept": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "minLength": 1,
+              "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+              "type": "string"
+            }
+          ],
+          "title": "Concept"
+        },
+        "constraints": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "composite": "#/$defs/RegistryConstraint",
+                "descendants": "#/$defs/RegistryConstraint",
+                "domain": "#/$defs/DomainConstraint",
+                "exact": "#/$defs/RegistryConstraint",
+                "members": "#/$defs/RegistryConstraint",
+                "standard_only": "#/$defs/StandardConstraint"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/DomainConstraint"
+              },
+              {
+                "$ref": "#/$defs/RegistryConstraint"
+              },
+              {
+                "$ref": "#/$defs/StandardConstraint"
+              }
+            ]
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "value": {
+          "discriminator": {
+            "mapping": {
+              "coded": "#/$defs/Coded",
+              "numeric": "#/$defs/Numeric",
+              "numeric_from_code": "#/$defs/NumericFromCode",
+              "numeric_with_unit": "#/$defs/NumericWithUnit",
+              "ordinal": "#/$defs/Ordinal",
+              "partial_date": "#/$defs/PartialDate",
+              "presence": "#/$defs/Presence"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Presence"
+            },
+            {
+              "$ref": "#/$defs/Coded"
+            },
+            {
+              "$ref": "#/$defs/Ordinal"
+            },
+            {
+              "$ref": "#/$defs/Numeric"
+            },
+            {
+              "$ref": "#/$defs/NumericFromCode"
+            },
+            {
+              "$ref": "#/$defs/NumericWithUnit"
+            },
+            {
+              "$ref": "#/$defs/PartialDate"
+            }
+          ],
+          "title": "Value"
+        },
+        "context": {
+          "$ref": "#/$defs/RowContext"
+        },
+        "derivations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Derivation"
+          },
+          "title": "Derivations",
+          "type": "array"
+        },
+        "suppress_when": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "answered": "#/$defs/AnsweredPredicate",
+                  "in": "#/$defs/MembershipPredicate",
+                  "not_in": "#/$defs/MembershipPredicate",
+                  "unanswered": "#/$defs/AnsweredPredicate"
+                },
+                "propertyName": "test"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MembershipPredicate"
+                },
+                {
+                  "$ref": "#/$defs/AnsweredPredicate"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Suppress When"
+        },
+        "special_values": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SpecialValue"
+          },
+          "title": "Special Values",
+          "type": "array"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "profile",
+        "concept",
+        "value"
+      ],
+      "title": "Row",
+      "type": "object"
+    },
+    "RowContext": {
+      "additionalProperties": false,
+      "properties": {
+        "event_date": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DateSource"
+          },
+          "title": "Event Date",
+          "type": "array"
+        },
+        "visit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visit"
+        },
+        "care_site": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Care Site"
+        }
+      },
+      "title": "RowContext",
+      "type": "object"
+    },
+    "SpecialMode": {
+      "enum": [
+        "drop",
+        "fail",
+        "keep_as_value"
+      ],
+      "title": "SpecialMode",
+      "type": "string"
+    },
+    "SpecialValue": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "mode": {
+          "$ref": "#/$defs/SpecialMode"
+        },
+        "when": {
+          "discriminator": {
+            "mapping": {
+              "answered": "#/$defs/AnsweredPredicate",
+              "in": "#/$defs/MembershipPredicate",
+              "not_in": "#/$defs/MembershipPredicate",
+              "unanswered": "#/$defs/AnsweredPredicate"
+            },
+            "propertyName": "test"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/MembershipPredicate"
+            },
+            {
+              "$ref": "#/$defs/AnsweredPredicate"
+            }
+          ],
+          "title": "When"
+        },
+        "reason": {
+          "$ref": "#/$defs/UnknownReason"
+        },
+        "unknown": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unknown"
+        }
+      },
+      "required": [
+        "source",
+        "mode",
+        "when",
+        "reason"
+      ],
+      "title": "SpecialValue",
+      "type": "object"
+    },
+    "StandardConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "standard_only",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reference": {
+          "default": null,
+          "title": "Reference",
+          "type": "null"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "StandardConstraint",
+      "type": "object"
+    },
+    "UnitConversion": {
+      "additionalProperties": false,
+      "properties": {
+        "unit": {
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "factor": {
+          "exclusiveMinimum": 0,
+          "title": "Factor",
+          "type": "number"
+        },
+        "offset": {
+          "default": 0,
+          "title": "Offset",
+          "type": "number"
+        }
+      },
+      "required": [
+        "unit",
+        "factor"
+      ],
+      "title": "UnitConversion",
+      "type": "object"
+    },
+    "UnitPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleInput"
+            },
+            {
+              "$ref": "#/$defs/ContextInput"
+            }
+          ],
+          "title": "Source"
+        },
+        "allowed": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed"
+        },
+        "canonical": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canonical"
+        },
+        "conversions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/UnitConversion"
+          },
+          "title": "Conversions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "UnitPolicy",
+      "type": "object"
+    },
+    "UnknownReason": {
+      "enum": [
+        "missing",
+        "mapping_failed",
+        "asked_unknown",
+        "not_asked",
+        "asked_declined"
+      ],
+      "title": "UnknownReason",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "minLength": 1,
+      "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    },
+    "roles": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+        "type": "string"
+      },
+      "title": "Roles",
+      "type": "array"
+    },
+    "context": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+        "type": "string"
+      },
+      "title": "Context",
+      "type": "array"
+    },
+    "optional_roles": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+        "type": "string"
+      },
+      "title": "Optional Roles",
+      "type": "array"
+    },
+    "optional_context": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+        "type": "string"
+      },
+      "title": "Optional Context",
+      "type": "array"
+    },
+    "code_groups": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z_0-9.-]*$",
+        "type": "string"
+      },
+      "title": "Code Groups",
+      "type": "array"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/Row"
+      },
+      "minItems": 1,
+      "title": "Rows",
+      "type": "array"
+    },
+    "links": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Link"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "notes": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "name",
+    "version",
+    "rows"
+  ],
+  "title": "OmopShape",
+  "type": "object"
+}

@@ -89,6 +89,18 @@ class UnknownReason(str, Enum):
     """
     A source value was present but could not be mapped.
     """
+    asked_unknown = "asked_unknown"
+    """
+    The source was asked and did not know (HL7 ASKU).
+    """
+    not_asked = "not_asked"
+    """
+    The source was not asked (HL7 NASK).
+    """
+    asked_declined = "asked_declined"
+    """
+    The source was asked and declined to answer (HL7 FHIR DataAbsentReason asked-declined).
+    """
 
 
 

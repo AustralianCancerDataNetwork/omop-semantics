@@ -1,98 +1,144 @@
 profiles:
   - name: observation_simple
     cdm_table: observation
+    event_date_slot: observation_date
+    visit_slot: visit_occurrence_id
     concept_slot: observation_concept_id
   - name: observation_coded
     cdm_table: observation
+    event_date_slot: observation_date
+    visit_slot: visit_occurrence_id
     concept_slot: observation_concept_id
     value_slot: value_as_concept_id
   - name: observation_string
     cdm_table: observation
+    event_date_slot: observation_date
+    visit_slot: visit_occurrence_id
     concept_slot: observation_concept_id
     value_slot: value_as_string
   - name: observation_numeric
     cdm_table: observation
+    event_date_slot: observation_date
+    visit_slot: visit_occurrence_id
     concept_slot: observation_concept_id
     value_slot: value_as_number
   - name: observation_numeric_with_unit
     cdm_table: observation
+    event_date_slot: observation_date
+    visit_slot: visit_occurrence_id
     concept_slot: observation_concept_id
     value_slot: value_as_number
     unit_slot: unit_concept_id
   - name: observation_with_qualifier
     cdm_table: observation
+    event_date_slot: observation_date
+    visit_slot: visit_occurrence_id
     concept_slot: observation_concept_id
     extra_concept_slots:
       - qualifier_concept_id
   - name: measurement_numeric
     cdm_table: measurement
+    event_date_slot: measurement_date
+    visit_slot: visit_occurrence_id
     concept_slot: measurement_concept_id
     value_slot: value_as_number
   - name: measurement_numeric_with_unit
     cdm_table: measurement
+    event_date_slot: measurement_date
+    visit_slot: visit_occurrence_id
     concept_slot: measurement_concept_id
     value_slot: value_as_number
     unit_slot: unit_concept_id
   - name: measurement_numeric_with_operator
     cdm_table: measurement
+    event_date_slot: measurement_date
+    visit_slot: visit_occurrence_id
     concept_slot: measurement_concept_id
     value_slot: value_as_number
     unit_slot: unit_concept_id
     operator_slot: operator_concept_id
+    numeric_slots: [range_low, range_high]
   - name: measurement_coded
     cdm_table: measurement
+    event_date_slot: measurement_date
+    visit_slot: visit_occurrence_id
     concept_slot: measurement_concept_id
     value_slot: value_as_concept_id
   - name: measurement_simple
     cdm_table: measurement
+    event_date_slot: measurement_date
+    visit_slot: visit_occurrence_id
     concept_slot: measurement_concept_id
   - name: procedure_simple
     cdm_table: procedure_occurrence
+    event_date_slot: procedure_date
+    visit_slot: visit_occurrence_id
     concept_slot: procedure_concept_id
   - name: procedure_with_inline_modifier
     cdm_table: procedure_occurrence
+    event_date_slot: procedure_date
+    visit_slot: visit_occurrence_id
     concept_slot: procedure_concept_id
     modifier_slot: modifier_concept_id
   - name: condition_simple
     cdm_table: condition_occurrence
+    event_date_slot: condition_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: condition_concept_id
   - name: condition_with_status
     cdm_table: condition_occurrence
+    event_date_slot: condition_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: condition_concept_id
     extra_concept_slots:
       - condition_status_concept_id
   - name: drug_exposure_simple
     cdm_table: drug_exposure
+    event_date_slot: drug_exposure_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: drug_concept_id
   - name: drug_exposure_dose
     cdm_table: drug_exposure
+    event_date_slot: drug_exposure_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: drug_concept_id
     value_slot: dose_value
   - name: drug_exposure_with_quantity_and_days_supply
     cdm_table: drug_exposure
+    event_date_slot: drug_exposure_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: drug_concept_id
     numeric_slots:
       - quantity
       - days_supply
   - name: drug_exposure_with_route
     cdm_table: drug_exposure
+    event_date_slot: drug_exposure_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: drug_concept_id
     extra_concept_slots:
       - route_concept_id
   - name: device_simple
     cdm_table: device_exposure
+    event_date_slot: device_exposure_start_date
+    visit_slot: visit_occurrence_id
     concept_slot: device_concept_id
   - name: visit_simple
     cdm_table: visit_occurrence
+    event_date_slot: visit_start_date
+    care_site_slot: care_site_id
     concept_slot: visit_concept_id
   - name: death_simple
     cdm_table: death
+    event_date_slot: death_date
     concept_slot: death_type_concept_id
   - name: specimen_simple
     cdm_table: specimen
+    event_date_slot: specimen_date
     concept_slot: specimen_concept_id
   - name: specimen_with_site_status_quantity
     cdm_table: specimen
+    event_date_slot: specimen_date
     concept_slot: specimen_concept_id
     extra_concept_slots:
       - anatomic_site_concept_id

@@ -22,6 +22,9 @@ classes:
       - numeric_slots
       - string_slots
       - reference_slots
+      - event_date_slot
+      - visit_slot
+      - care_site_slot
 slots:
   profiles:
     range: OmopCdmProfile
@@ -63,6 +66,12 @@ slots:
     range: string
     multivalued: true
     required: false
+  event_date_slot:
+    range: string
+  visit_slot:
+    range: string
+  care_site_slot:
+    range: string
 enums:
   CdmTable:
     description: OMOP CDM table to which a semantic template applies

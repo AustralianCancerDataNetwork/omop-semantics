@@ -12,8 +12,9 @@ It gives you a structured, versioned, portable layer for describing which OMOP c
 | --- | --- |
 | Named concepts and value sets | `omop_semantics.runtime.default_valuesets.runtime` |
 | Compiled semantic templates and CDM profiles | `omop_semantics.runtime.OmopSemanticEngine` |
+| YAML shapes, source bindings, projection results, and vocabulary checks | `omop_semantics.projection` |
 | Fallback concepts and reason codes | `omop_semantics.unknowns` |
-| CDM 5.4.2 event-field links | `omop_semantics.links` exports `LINK_MECHANISMS`, `LinkMechanism`, and `field_concept_id` |
+| CDM event-field links | `omop_semantics.links` exports `LINK_MECHANISMS`, `LinkMechanism`, and `field_concept_id` |
 
 ---
 
@@ -42,5 +43,6 @@ Use **omop-semantics** if you:
 - [Usage](docs/usage.md) — loading paths and code patterns
 - [Data Model](docs/data-model.md) — profiles, templates, and semantic objects
 - [Schema & Instances](docs/schema-and-instances.md) — authoring assets and file organisation
+- [Semantic Projection](docs/projection.md) — authoring shapes and projecting records
 - [Fallback Concepts](docs/unknowns.md) — the shipped unknown and default concepts
 - [Internals](docs/internals.md) — package structure and load-time behaviour
